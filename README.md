@@ -32,7 +32,9 @@ The survey results show that users value personalization, actionable advice, and
 ## Software Architecture
 ### Frontend (Next.js)
 > Framework: Next.js
+
 > Libraries: React, Tailwind CSS, Chart.js
+
 > Features:
 > * User interfaces for goal setting, progress tracking, and content consumption.
 > * Social media-style feed with inspirational content.
