@@ -3,8 +3,8 @@
 ## Architectural Overview
 1. **Frontend (React)**
 
-User interface for content upload, goal setting, and progress visualization.
-Communication with the backend through RESTful APIs.
+* User interface for content upload, goal setting, and progress visualization.
+* Communication with the backend through RESTful APIs.
 
 2. **Backend (Node.js/Next.js)**
 
