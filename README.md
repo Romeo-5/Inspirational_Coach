@@ -1,4 +1,4 @@
-# Inspirational_Coach
+# Inspirational Coach
 
 ## Architectural Overview
 1. **Frontend (React)**
