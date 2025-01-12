@@ -42,8 +42,11 @@ The survey results show that users value personalization, actionable advice, and
 
 ### Backend (Node.js/Next.js API Routes)
 > Framework: Node.js with Next.js API routes
+
 > Database: PostgreSQL(?)
+
 > Authentication: NextAuth.js for OAuth2/JWT-based authentication
+
 > Key API Endpoints:
 > * /api/auth – User authentication and session management.
 > * /api/goals – Manage user goals and progress tracking.
@@ -52,16 +55,22 @@ The survey results show that users value personalization, actionable advice, and
 
 ### AI Model Integration (External Process)
 > Language Model: OpenAI or Hugging Face API for cultural analysis and inspiration detection.
+
 > Training Pipeline:
 > * Data collected from social media (Twitter, Reddit, YouTube).
 > * Fine-tuned using culturally diverse datasets.
 
 ### Deployed as a Separate Service:
 > Served via a FastAPI or Flask endpoint, integrated with the backend.
+
 > Data Collection and Model Training Pipeline (External Process)
+
 > Data Sources: Social media platforms, user-uploaded content.
+
 > Tooling: Python scripts using Tweepy, PRAW, and BeautifulSoup.
+
 > Storage: AWS S3 for media, PostgreSQL for structured data.
+
 > Preprocessing and Training:
 > * Text cleaning and language detection.
 > * Fine-tuning on inspirational datasets with cultural and demographic diversity.
