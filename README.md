@@ -1,6 +1,6 @@
 # Inspirational Coach
 
-## Architectural Overview
+## 🧱 Architectural Overview
 1. **Frontend (React)**
 
 * User interface for content upload, goal setting, and progress visualization.
