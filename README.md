@@ -10,7 +10,7 @@ AI-driven recommendations tailored to users' cultural identities, personal prefe
 2. Goal Setting and Progress Tracking
 Tools to help users set clear goals, track progress, and visualize their journey toward self-improvement.
 
-3. Daily Affirmations and Actionable Advice
+3. Guided Journaling
 Personalized affirmations, quotes, and practical tips to keep users motivated and engaged.
 
 4. Cultural and Spiritual Diversity
