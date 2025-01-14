@@ -4,20 +4,13 @@ The Inspirational Coach is an AI-powered platform that aims to help users overco
 The platform is designed to address key motivational challenges such as burnout, procrastination, and fear of failure through daily actionable advice, progress tracking, and community interaction.
 
 ## Key Features
-1. Personalized Content
-AI-driven recommendations tailored to users' cultural identities, personal preferences, and motivational barriers.
+1. Personalized Content: AI-driven recommendations tailored to users' cultural identities, personal preferences, and motivational barriers.
 
-2. Goal Setting and Progress Tracking
-Tools to help users set clear goals, track progress, and visualize their journey toward self-improvement.
+2. Goal Setting and Progress Tracking: Tools to help users set clear goals, track progress, and visualize their journey toward self-improvement.
 
 3. Guided Journaling
-Personalized affirmations, quotes, and practical tips to keep users motivated and engaged.
 
-4. Cultural and Spiritual Diversity
-Content that incorporates insights, stories, and philosophies from various cultural and spiritual traditions to promote inclusivity.
-
-5. Feedback Mechanism
-Regular feedback collection from users to adapt the platform to their evolving needs.
+4 . Feedback Mechanism: Regular feedback collection from users to adapt the platform to their evolving needs.
 
 ## Motivation and Background
 Social media platforms often prioritize engagement over well-being, leading to issues like burnout, procrastination, and self-doubt. The current structure of social media leverages users' psychology to keep them entertained, often at the expense of their mental health.
