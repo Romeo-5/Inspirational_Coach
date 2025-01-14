@@ -10,16 +10,13 @@ AI-driven recommendations tailored to users' cultural identities, personal prefe
 2. Goal Setting and Progress Tracking
 Tools to help users set clear goals, track progress, and visualize their journey toward self-improvement.
 
-3. Community Features
-Social and peer interaction components to foster a supportive community where users can share their journeys and inspire one another.
-
-4. Daily Affirmations and Actionable Advice
+3. Daily Affirmations and Actionable Advice
 Personalized affirmations, quotes, and practical tips to keep users motivated and engaged.
 
-5. Cultural and Spiritual Diversity
+4. Cultural and Spiritual Diversity
 Content that incorporates insights, stories, and philosophies from various cultural and spiritual traditions to promote inclusivity.
 
-6. Feedback Mechanism
+5. Feedback Mechanism
 Regular feedback collection from users to adapt the platform to their evolving needs.
 
 ## Motivation and Background
