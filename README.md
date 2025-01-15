@@ -10,7 +10,7 @@ The platform is designed to address key motivational challenges such as burnout,
 
 3. Guided Journaling
 
-4 . Feedback Mechanism: Regular feedback collection from users to adapt the platform to their evolving needs.
+4. Feedback Mechanism: Regular feedback collection from users to adapt the platform to their evolving needs.
 
 ## Motivation and Background
 Social media platforms often prioritize engagement over well-being, leading to issues like burnout, procrastination, and self-doubt. The current structure of social media leverages users' psychology to keep them entertained, often at the expense of their mental health.
