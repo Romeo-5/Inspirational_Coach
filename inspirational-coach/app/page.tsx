@@ -1,20 +1,77 @@
-import Link from 'next/link';
+import AuthButtons from "./components/AuthButtons";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <h1 className="text-4xl font-bold mb-6">Inspirational Coach</h1>
-      <div className="space-y-4">
-        <Link href="/journal">
-          <button className="px-4 py-2 bg-blue-500 text-white rounded">Go to Journal</button>
-        </Link>
-        <Link href="/api/affirmations">
-          <button className="px-4 py-2 bg-green-500 text-white rounded">Get Daily Affirmation</button>
-        </Link>
-        <Link href="/feedback">
-          <button className="px-4 py-2 bg-purple-500 text-white rounded">Submit Feedback</button>
-        </Link>
-      </div>
+    <div className="min-h-screen flex flex-col bg-gray-100">
+      {/* 🌟 Navigation Bar */}
+      <nav className="bg-white shadow-md py-4 px-6 flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">Inspirational Coach</h1>
+        <div className="flex space-x-6">
+          <Link href="/journal" className="text-gray-600 hover:text-blue-500">
+            Journal
+          </Link>
+          <Link href="/api/affirmations" className="text-gray-600 hover:text-green-500">
+            Daily Affirmations
+          </Link>
+          <Link href="/feedback" className="text-gray-600 hover:text-purple-500">
+            Feedback
+          </Link>
+        </div>
+        <AuthButtons />
+      </nav>
+
+      {/* 🌟 Home Page Body */}
+      <main className="flex flex-col items-center justify-center flex-grow px-6 text-center">
+        <h2 className="text-4xl font-bold text-gray-900 mt-10">
+          Unlock Your Potential
+        </h2>
+        <p className="text-gray-700 mt-4 max-w-2xl">
+          Inspirational Coach helps you stay motivated with **daily affirmations, personalized goal setting, and guided journaling**.
+          Join a community that uplifts and inspires!
+        </p>
+
+        {/* Features Section */}
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Feature: Goal Setting */}
+          <div className="bg-white shadow-lg p-6 rounded-lg">
+            <h3 className="text-xl font-semibold text-gray-800">📌 Goal Setting</h3>
+            <p className="text-gray-600 mt-2">
+              Define and track your personal goals with progress visualization.
+            </p>
+          </div>
+
+          {/* Feature: Daily Affirmations */}
+          <div className="bg-white shadow-lg p-6 rounded-lg">
+            <h3 className="text-xl font-semibold text-gray-800">🌟 Daily Affirmations</h3>
+            <p className="text-gray-600 mt-2">
+              Get a daily boost with positive affirmations tailored to your mindset.
+            </p>
+          </div>
+
+          {/* Feature: Community Support */}
+          <div className="bg-white shadow-lg p-6 rounded-lg">
+            <h3 className="text-xl font-semibold text-gray-800">🤝 Community Support</h3>
+            <p className="text-gray-600 mt-2">
+              Share your journey, get inspired, and inspire others in the community.
+            </p>
+          </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="mt-10">
+          <Link href="/journal">
+            <button className="px-6 py-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600">
+              Start Your Journey
+            </button>
+          </Link>
+        </div>
+      </main>
+
+      {/* 🌟 Footer */}
+      <footer className="bg-gray-200 text-center py-4 mt-6">
+        <p className="text-gray-600">© 2025 Inspirational Coach. All rights reserved.</p>
+      </footer>
     </div>
   );
 }
