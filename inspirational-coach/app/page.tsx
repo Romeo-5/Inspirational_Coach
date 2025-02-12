@@ -14,6 +14,12 @@ export default function Home() {
           <Link href="/api/affirmations" className="text-gray-600 hover:text-green-500">
             Daily Affirmations
           </Link>
+          <Link href="/personalized-content" className="text-gray-600 hover:text-purple-500">
+            Personalized Inspiration
+          </Link>
+          <Link href="/goals" className="text-gray-600 hover:text-orange-500">
+            Goal Tracking
+          </Link>
           <Link href="/feedback" className="text-gray-600 hover:text-purple-500">
             Feedback
           </Link>
@@ -39,6 +45,11 @@ export default function Home() {
             <p className="text-gray-600 mt-2">
               Define and track your personal goals with progress visualization.
             </p>
+            <Link href="/goals">
+              <button className="mt-3 px-4 py-2 bg-orange-500 text-white rounded-md shadow-md hover:bg-orange-600">
+                Track Goals
+              </button>
+            </Link>
           </div>
 
           {/* Feature: Daily Affirmations */}
@@ -49,12 +60,17 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Feature: Community Support */}
+          {/* Feature: Personalized Inspiration */}
           <div className="bg-white shadow-lg p-6 rounded-lg">
-            <h3 className="text-xl font-semibold text-gray-800">🤝 Community Support</h3>
+            <h3 className="text-xl font-semibold text-gray-800">💡 Personalized Inspiration</h3>
             <p className="text-gray-600 mt-2">
-              Share your journey, get inspired, and inspire others in the community.
+              AI-powered inspiration tailored to your background, values, and goals.
             </p>
+            <Link href="/personalized-content">
+              <button className="mt-3 px-4 py-2 bg-purple-500 text-white rounded-md shadow-md hover:bg-purple-600">
+                Explore Now
+              </button>
+            </Link>
           </div>
         </div>
 
