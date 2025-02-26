@@ -33,7 +33,7 @@ export default function Home() {
           Unlock Your Potential
         </h2>
         <p className="text-gray-700 mt-4 max-w-2xl">
-          Inspirational Coach helps you stay motivated with **daily affirmations, personalized goal setting, and guided journaling**.
+          Inspirational Coach helps you stay motivated with <b>daily affirmations, personalized goal setting, and guided journaling</b>.
           Join a community that uplifts and inspires!
         </p>
 

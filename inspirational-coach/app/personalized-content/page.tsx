@@ -31,7 +31,7 @@ export default function PersonalizedContent() {
     );
   };
 
-  // Fetch AI-Generated Content
+  // Fetch AI-Generated Content from FastAPI Server
   const generateContent = async () => {
     if (!culture || themes.length === 0) {
       alert("Please fill out your preferences first.");
@@ -41,15 +41,30 @@ export default function PersonalizedContent() {
     setLoading(true);
 
     try {
-      const response = await axios.post("/api/generate-inspiration", {
-        culture,
-        themes,
-        tone,
-      });
+      const response = await axios.post("http://localhost:8000/generate", {
+        prompt: `You are an expert inspirational coach. Your goal is to provide a deeply personalized and culturally resonant message to uplift the user.
+  
+        User Background:  
+        - The user is from ${culture} and values ${themes.join(", ")}.
+        - Their culture has unique traditions, wisdom, and perspectives that can be integrated into inspiration.
+  
+        Your Task: 
+        - Speak directly to the user in an encouraging, motivational tone.  
+        - Weave in cultural elements, such as proverbs, philosophies, or historical inspirations, that align with the user's values.  
+        - Keep the message concise (2-3 sentences), impactful, and free of extra commentary.  
+        - Do not restate the request or include phrases like "Here is an inspirational message:".  
 
-      setGeneratedContent(response.data.message);
+        Example Output for a Japanese user who values Self-Discipline:  
+        - Like the cherry blossom that blooms briefly but beautifully, your discipline defines your path. In the teachings of Bushido, perseverance is the key to self-mastery. Keep moving forward with honor, and let your dedication shape your success.
+
+        Now, generate an inspirational message following this structure, incorporating cultural connections in a meaningful and natural way:`,
+        max_tokens: 100,
+      });      
+
+      setGeneratedContent(response.data.response);
     } catch (error) {
       console.error("Error generating content:", error);
+      setGeneratedContent("Failed to generate content. Please try again.");
     } finally {
       setLoading(false);
     }
