@@ -31,10 +31,17 @@ app.add_middleware(
 def clean_generated_text(text: str) -> str:
     """Remove leading/trailing quotes from response."""
     cleaned_text = re.sub(r'^["“”]+|["“”]+$', '', text)  # Remove surrounding quotes
+    cleaned_text = re.sub(r'^[^:]*:', '', cleaned_text)  # Remove everything before the first colon
+    cleaned_text = re.sub(r'You are a personal inspirational coach\.', '', cleaned_text) # If "You are a personal inspirational coach." is in the text, remove it
+    # If there is a leading quote, remove it
+    if cleaned_text.startswith('"'):
+        cleaned_text = cleaned_text[1:].strip()
+
     return cleaned_text.strip()
 
 @app.post("/generate")
 async def generate_text(request: RequestModel):
+    print(f"Received prompt: {request.prompt}")  # Debugging line
     inputs = tokenizer(request.prompt, return_tensors="pt").to("cuda" if torch.cuda.is_available() else "cpu")
     outputs = model.generate(**inputs, max_new_tokens=request.max_tokens)
     

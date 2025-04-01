@@ -24,6 +24,10 @@ export default function PersonalizedContent() {
   const [savedInspirations, setSavedInspirations] = useState<SavedInspiration[]>([]);
   const [savingContent, setSavingContent] = useState(false);
   const [backgroundPreview, setBackgroundPreview] = useState("mountains");
+  
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState("");
 
   // Available themes with icons
   const personalGrowthThemes = [
@@ -57,6 +61,15 @@ export default function PersonalizedContent() {
     { id: "sunset", name: "Sunset", emoji: "🌅" },
     { id: "minimalist", name: "Minimalist", emoji: "◻️" },
   ];
+
+  // Clean generated content by removing quotation marks and hashtags
+  const cleanGeneratedContent = (content: string) => {
+    // Remove any hashtag sequences and quotes
+    return content
+      .replace(/#\w+\s*/g, '')
+      .replace(/^[""]|[""]$/g, '')
+      .trim();
+  };
 
   // Fetch saved inspirations
   useEffect(() => {
@@ -94,6 +107,12 @@ export default function PersonalizedContent() {
   // Get theme names for prompt
   const getThemeNames = () => themes.map(t => personalGrowthThemes.find(theme => theme.name === t)?.name || t);
 
+  // Process the model response
+  const processModelResponse = (response: string) => {
+    const cleanedResponse = cleanGeneratedContent(response);
+    return cleanedResponse;
+  };
+
   // Fetch AI-Generated Content from FastAPI Server
   const generateContent = async () => {
     if (!culture || themes.length === 0) {
@@ -107,24 +126,27 @@ export default function PersonalizedContent() {
       const response = await axios.post("http://localhost:8000/generate", {
         prompt: `You are a personal inspirational coach. Generate ONE single, cohesive inspirational message (3-4 sentences) that:
 
-          1. Incorporates elements from {culture} culture
-          2. Focuses on the themes of {themes}
-          3. Uses a {tone} tone
+          1. Incorporates elements from ${culture} culture
+          2. Focuses on the themes of ${themes}
+          3. Uses a ${tone} tone
           4. Speaks directly to the reader using "you"
           5. Includes culturally relevant wisdom, proverbs, or concepts
           6. Is complete and well-structured
 
-          Do not use bullet points or multiple options. Do not include phrases like "Here is an inspirational message." Do not label or explain the output. Simply provide the inspirational message itself, with a clear beginning and end.
-
-          Example format for Japanese culture and Self-Discipline theme:
-          Like the cherry blossom that blooms briefly but beautifully, your discipline defines your path. In the teachings of Bushido, perseverance is the key to self-mastery. Keep moving forward with honor, and let your dedication shape your success.`,
+          Do not use bullet points or multiple options. Do not include phrases like "Here is an inspirational message." Do not label or explain the output. Simply provide the inspirational message itself, with a clear beginning and end.`,
         max_tokens: 150,
-      });      
+      });  
+      
+      console.log("Generated Content:", response.data.response);
 
-      setGeneratedContent(response.data.response);
+      // Process the response to clean it up
+      const processedContent = processModelResponse(response.data.response);
+      setGeneratedContent(processedContent);
+      setEditedContent(processedContent); // Initialize edited content with the processed response
     } catch (error) {
       console.error("Error generating content:", error);
       setGeneratedContent("Failed to generate content. Please try again.");
+      setEditedContent("Failed to generate content. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -134,10 +156,13 @@ export default function PersonalizedContent() {
   const saveContent = async () => {
     if (!generatedContent) return;
     
+    // Use edited content if in edit mode
+    const contentToSave = isEditing ? editedContent : generatedContent;
+    
     setSavingContent(true);
     try {
       const docRef = await addDoc(collection(db, "saved-inspirations"), {
-        content: generatedContent,
+        content: contentToSave,
         culture,
         themes,
         timestamp: new Date(),
@@ -148,13 +173,17 @@ export default function PersonalizedContent() {
       setSavedInspirations([
         {
           id: docRef.id,
-          content: generatedContent,
+          content: contentToSave,
           culture,
           themes,
           timestamp: new Date(),
         },
         ...savedInspirations.slice(0, 4), // Keep only the 5 most recent
       ]);
+      
+      // Update content and exit edit mode
+      setGeneratedContent(contentToSave);
+      setIsEditing(false);
       
       // Show success feedback
       setGeneratedContent(prev => prev + "\n\n✅ Saved successfully!");
@@ -163,6 +192,26 @@ export default function PersonalizedContent() {
     } finally {
       setSavingContent(false);
     }
+  };
+
+  // Enter edit mode
+  const startEditing = () => {
+    setIsEditing(true);
+    // Initialize edited content with current generated content
+    setEditedContent(generatedContent?.split("\n\n✅")[0] || "");
+  };
+
+  // Cancel editing
+  const cancelEditing = () => {
+    setIsEditing(false);
+    // Reset edited content
+    setEditedContent(generatedContent?.split("\n\n✅")[0] || "");
+  };
+
+  // Apply edits
+  const applyEdits = () => {
+    setGeneratedContent(editedContent);
+    setIsEditing(false);
   };
 
   // Delete saved inspiration
@@ -207,6 +256,11 @@ export default function PersonalizedContent() {
   // Get text color for background
   const getTextColorForBackground = (background: string) => {
     return ["minimalist"].includes(background) ? "text-gray-800" : "text-white";
+  };
+
+  // Get display content (without success message)
+  const getDisplayContent = () => {
+    return generatedContent?.split("\n\n✅")[0] || "";
   };
 
   return (
@@ -342,6 +396,18 @@ export default function PersonalizedContent() {
                       </div>
                       <div className="flex gap-2">
                         <button
+                          onClick={() => {
+                            setGeneratedContent(insp.content);
+                            setEditedContent(insp.content);
+                            setCulture(insp.culture);
+                            setThemes(insp.themes);
+                          }}
+                          className="text-blue-500 hover:text-blue-700"
+                          title="Load this inspiration"
+                        >
+                          📝
+                        </button>
+                        <button
                           onClick={() => copyToClipboard(insp.content)}
                           className="text-blue-500 hover:text-blue-700"
                           title="Copy to clipboard"
@@ -392,17 +458,44 @@ export default function PersonalizedContent() {
               {/* Inspiration Card */}
               <div className={`${getBackgroundStyle(backgroundPreview)} min-h-64 flex flex-col justify-center`}>
                 <div className={`${getTextColorForBackground(backgroundPreview)} text-center px-4 py-6`}>
-                  <blockquote className="text-xl font-medium italic mb-4">
-                    "{generatedContent.split("\n\n✅")[0]}"
-                  </blockquote>
-                  <div className="text-sm opacity-80">
-                    {themes.map((t, i) => (
-                      <span key={t}>
-                        {i > 0 && " • "}
-                        {personalGrowthThemes.find(theme => theme.name === t)?.icon} {t}
-                      </span>
-                    ))}
-                  </div>
+                  {isEditing ? (
+                    <div className="flex flex-col items-center gap-4">
+                      <textarea
+                        value={editedContent}
+                        onChange={(e) => setEditedContent(e.target.value)}
+                        className="w-full p-4 text-gray-800 bg-white bg-opacity-90 rounded-lg border border-gray-300 text-lg min-h-36"
+                        placeholder="Edit your inspirational message here..."
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={cancelEditing}
+                          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={applyEdits}
+                          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                        >
+                          Apply Changes
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <blockquote className="text-xl font-medium italic mb-4">
+                        "{getDisplayContent()}"
+                      </blockquote>
+                      <div className="text-sm opacity-80">
+                        {themes.map((t, i) => (
+                          <span key={t}>
+                            {i > 0 && " • "}
+                            {personalGrowthThemes.find(theme => theme.name === t)?.icon} {t}
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -410,15 +503,32 @@ export default function PersonalizedContent() {
               <div className="flex gap-3">
                 <button
                   onClick={() => generateContent()}
-                  disabled={loading}
-                  className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition flex items-center justify-center gap-2"
+                  disabled={loading || isEditing}
+                  className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 transition flex items-center justify-center gap-2"
                 >
                   <span>Regenerate</span>
                   <span>🔄</span>
                 </button>
+                {isEditing ? (
+                  <button
+                    onClick={applyEdits}
+                    className="flex-1 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center justify-center gap-2"
+                  >
+                    <span>Apply Changes</span>
+                    <span>✓</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={startEditing}
+                    className="flex-1 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition flex items-center justify-center gap-2"
+                  >
+                    <span>Edit Content</span>
+                    <span>✏️</span>
+                  </button>
+                )}
                 <button
                   onClick={() => saveContent()}
-                  disabled={savingContent || generatedContent.includes("✅ Saved")}
+                  disabled={savingContent || generatedContent.includes("✅ Saved") || isEditing}
                   className="flex-1 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-green-300 transition flex items-center justify-center gap-2"
                 >
                   {savingContent ? (
@@ -433,14 +543,15 @@ export default function PersonalizedContent() {
                     </>
                   ) : (
                     <>
-                      <span>Save Inspiration</span>
+                      <span>Save</span>
                       <span>💾</span>
                     </>
                   )}
                 </button>
                 <button
-                  onClick={() => copyToClipboard(generatedContent.split("\n\n✅")[0])}
-                  className="px-4 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
+                  onClick={() => copyToClipboard(getDisplayContent())}
+                  disabled={isEditing}
+                  className="px-4 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 disabled:bg-blue-50 disabled:text-blue-300 transition"
                   title="Copy to clipboard"
                 >
                   📋

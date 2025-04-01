@@ -32,22 +32,22 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 
 # Load Dataset
-dataset = load_dataset("csv", data_files="inspirational_dataset - Llama 3.2-1B.csv")
+dataset = load_dataset("csv", data_files="cleaned_dataset.csv")
 
 # Tokenize data with max_length optimization
 def tokenize_function(examples):
     return tokenizer(
-        examples["text"], 
+        examples["Text"], 
         padding="max_length", 
         truncation=True, 
         max_length=256, 
         return_tensors="pt"  # Ensure tensor outputs
     )
 
-tokenized_datasets = dataset.map(tokenize_function, batched=True, remove_columns=["text"])
+tokenized_datasets = dataset.map(tokenize_function, batched=True, remove_columns=["Text"])
 tokenized_datasets = tokenized_datasets.with_format("torch")  # Ensure proper format
 
-# Prepare model for k-bit training - THIS IS THE CRITICAL STEP THAT WAS MISSING
+# Prepare model for k-bit training
 model = prepare_model_for_kbit_training(model)
 
 # LoRA Configuration
