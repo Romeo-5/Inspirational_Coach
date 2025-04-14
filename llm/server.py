@@ -13,8 +13,8 @@ class RequestModel(BaseModel):
 
 # Load the LLaMA 3.2 1B model
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token="")
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.float16, device_map="auto", use_auth_token="")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token=" ")
+model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.float16, device_map="auto", use_auth_token=" ")
 
 # Initialize FastAPI
 app = FastAPI()
@@ -39,9 +39,9 @@ def clean_generated_text(text: str) -> str:
 
     return cleaned_text.strip()
 
+
 @app.post("/generate")
 async def generate_text(request: RequestModel):
-    print(f"Received prompt: {request.prompt}")  # Debugging line
     inputs = tokenizer(request.prompt, return_tensors="pt").to("cuda" if torch.cuda.is_available() else "cpu")
     outputs = model.generate(**inputs, max_new_tokens=request.max_tokens)
     
@@ -52,6 +52,15 @@ async def generate_text(request: RequestModel):
     generated_response = clean_generated_text(full_response.replace(request.prompt, "").strip())
 
     return {"response": generated_response}
+
+@app.post("/goal")
+async def generate_goal_text(request: RequestModel):
+    inputs = tokenizer(request.prompt, return_tensors="pt").to("cuda" if torch.cuda.is_available() else "cpu")
+    outputs = model.generate(**inputs, max_new_tokens=request.max_tokens)
+
+    full_response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    return {"response": full_response}
 
 if __name__ == "__main__":
     import uvicorn

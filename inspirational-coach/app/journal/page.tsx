@@ -4,7 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import Link from "next/link";
-import { Calendar, Moon, Sun, Sparkles, Save, Trash, Edit, X, RefreshCw, Search, Filter, ChevronDown } from "lucide-react";
+import { 
+  Calendar, Moon, Sun, Sparkles, Save, Trash, Edit, X, RefreshCw, 
+  Search, Filter, ChevronDown, BookOpen, Star, Target, MessageCircle, Copy
+} from "lucide-react";
 
 export default function Journal() {
   const [entry, setEntry] = useState("");
@@ -200,24 +203,43 @@ export default function Journal() {
     return groups;
   }, {});
 
+  // Copy entry to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert("Copied to clipboard!");
+  };
+
   return (
-    <div className={`min-h-screen flex flex-col ${darkMode ? "bg-gray-900 text-white" : "bg-gray-50"} transition-colors duration-300`}>
+    <div className={`min-h-screen flex flex-col ${darkMode ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"}`}>
       {/* 🌟 Navigation Bar */}
       <nav className={`${darkMode ? "bg-gray-800" : "bg-white"} shadow-md py-4 px-6 flex justify-between items-center sticky top-0 z-10`}>
-        <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"} flex items-center`}>
-          <Sparkles className="mr-2" size={20} />
-          Inspirational Coach
-        </h1>
-        <div className="flex items-center space-x-6">
-          <Link href="/" className={`${darkMode ? "text-gray-300 hover:text-blue-400" : "text-gray-600 hover:text-blue-500"} transition-colors`}>
-            Home
+        <Link href="/" className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"} flex items-center gap-2`}>
+          <Sparkles className={`h-6 w-6 ${darkMode ? "text-blue-400" : "text-blue-500"}`} />
+          <span>Inspirational Coach</span>
+        </Link>
+        
+        <div className="hidden md:flex space-x-6">
+          <Link href="/journal" className={`${darkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"} transition flex items-center gap-1 font-medium`}>
+            <BookOpen className="h-4 w-4" />
+            <span>Journal</span>
           </Link>
-          <Link href="/api/affirmations" className={`${darkMode ? "text-gray-300 hover:text-green-400" : "text-gray-600 hover:text-green-500"} transition-colors`}>
-            Daily Affirmations
+          <Link href="/api/affirmations" className={`${darkMode ? "text-gray-300 hover:text-green-400" : "text-gray-600 hover:text-green-500"} transition flex items-center gap-1`}>
+            <Star className="h-4 w-4" />
+            <span>Daily Affirmations</span>
           </Link>
-          <Link href="/feedback" className={`${darkMode ? "text-gray-300 hover:text-purple-400" : "text-gray-600 hover:text-purple-500"} transition-colors`}>
-            Feedback
+          <Link href="/personalized-content" className={`${darkMode ? "text-gray-300 hover:text-blue-400" : "text-gray-600 hover:text-blue-500"} transition flex items-center gap-1`}>
+            <Sparkles className="h-4 w-4" />
+            <span>Personalized Inspiration</span>
           </Link>
+          <Link href="/goals" className={`${darkMode ? "text-gray-300 hover:text-orange-400" : "text-gray-600 hover:text-orange-500"} transition flex items-center gap-1`}>
+            <Target className="h-4 w-4" />
+            <span>Goal Tracking</span>
+          </Link>
+          <Link href="/feedback" className={`${darkMode ? "text-gray-300 hover:text-purple-400" : "text-gray-600 hover:text-purple-500"} transition flex items-center gap-1`}>
+            <MessageCircle className="h-4 w-4" />
+            <span>Feedback</span>
+          </Link>
+          
           <button
             onClick={() => setDarkMode(!darkMode)}
             className={`p-2 rounded-full ${darkMode ? "bg-gray-700 text-yellow-300" : "bg-gray-200 text-gray-700"}`}
@@ -226,20 +248,35 @@ export default function Journal() {
             {darkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
+        
+        {/* Mobile menu button (simplified) */}
+        <button className="md:hidden text-gray-600 focus:outline-none">
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </nav>
 
-      {/* 🌟 Journal Section */}
-      <main className="flex flex-col items-center justify-start flex-grow px-6 py-10 max-w-7xl mx-auto w-full">
-        <h2 className={`text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"} mb-2`}>Guided Journaling</h2>
-        <p className={`${darkMode ? "text-gray-300" : "text-gray-700"} mb-8 max-w-2xl text-center`}>
-          Reflect, express, and grow. Track your moods, tag your entries, and explore your journey over time.
-        </p>
+      {/* 🌟 Header Section */}
+      <section className={`py-10 px-6 ${darkMode ? "bg-gradient-to-r from-gray-800 to-gray-900" : "bg-gradient-to-r from-blue-50 to-purple-50"}`}>
+        <div className="max-w-6xl mx-auto text-center">
+          <h1 className={`text-3xl md:text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"} leading-tight`}>
+            Guided <span className={darkMode ? "text-blue-400" : "text-blue-600"}>Journaling</span> Journey
+          </h1>
+          <p className={`${darkMode ? "text-gray-300" : "text-gray-700"} mt-4 text-lg max-w-3xl mx-auto`}>
+            Reflect, express, and grow. Track your moods, tag your entries, and explore your journey over time.
+          </p>
+        </div>
+      </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
-          {/* 📝 Left Column: Write & Edit */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* 📌 Guided Prompt Generator */}
-            <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white"} shadow-md rounded-lg p-6 border`}>
+      {/* 🌟 Main Content */}
+      <main className="flex flex-col md:flex-row gap-8 p-6 max-w-6xl mx-auto w-full">
+        {/* 📝 Left Column: Write & Edit */}
+        <div className="md:w-3/5 space-y-6">
+          {/* 📌 Guided Prompt Generator */}
+          <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white"} shadow-md rounded-xl overflow-hidden`}>
+            <div className={`h-3 ${darkMode ? "bg-indigo-600" : "bg-blue-500"}`}></div>
+            <div className="p-6">
               <div className="flex justify-between items-center mb-3">
                 <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
                   Need inspiration?
@@ -267,9 +304,12 @@ export default function Journal() {
                 </div>
               )}
             </div>
+          </div>
 
-            {/* ✍️ Journal Input */}
-            <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white"} shadow-md rounded-lg p-6 border`}>
+          {/* ✍️ Journal Input */}
+          <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white"} shadow-md rounded-xl overflow-hidden`}>
+            <div className={`h-3 ${darkMode ? "bg-green-600" : "bg-green-500"}`}></div>
+            <div className="p-6">
               <div className="flex justify-between items-center mb-3">
                 <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>
                   {editingId ? "Edit Entry" : "Write New Entry"}
@@ -294,7 +334,13 @@ export default function Journal() {
                 value={entry}
                 onChange={(e) => setEntry(e.target.value)}
                 placeholder="Write your thoughts here..."
-                className={`w-full h-48 border ${darkMode ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "bg-white border-gray-300 text-gray-700"} rounded-md p-4 focus:outline-none focus:ring-2 ${darkMode ? "focus:ring-blue-500" : "focus:ring-blue-400"}`}
+                className={`w-full h-48 border ${
+                  darkMode 
+                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" 
+                    : "bg-white border-gray-300 text-gray-700"
+                } rounded-md p-4 focus:outline-none focus:ring-2 ${
+                  darkMode ? "focus:ring-blue-500" : "focus:ring-blue-400"
+                }`}
               />
               
               {/* 🌈 Mood Selector */}
@@ -335,11 +381,21 @@ export default function Journal() {
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addTag()}
                     placeholder="Add a tag and press Enter"
-                    className={`flex-grow border ${darkMode ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" : "bg-white border-gray-300"} rounded-md p-2 focus:outline-none focus:ring-1 ${darkMode ? "focus:ring-blue-500" : "focus:ring-blue-400"}`}
+                    className={`flex-grow border ${
+                      darkMode 
+                        ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400" 
+                        : "bg-white border-gray-300"
+                    } rounded-md p-2 focus:outline-none focus:ring-1 ${
+                      darkMode ? "focus:ring-blue-500" : "focus:ring-blue-400"
+                    }`}
                   />
                   <button
                     onClick={addTag}
-                    className={`ml-2 px-3 py-2 ${darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"} rounded-md`}
+                    className={`ml-2 px-3 py-2 ${
+                      darkMode 
+                        ? "bg-gray-700 hover:bg-gray-600" 
+                        : "bg-gray-200 hover:bg-gray-300"
+                    } rounded-md`}
                   >
                     Add
                   </button>
@@ -370,22 +426,32 @@ export default function Journal() {
               
               <button
                 onClick={saveEntry}
-                className={`mt-4 px-6 py-2 ${darkMode ? "bg-green-600 hover:bg-green-700" : "bg-green-500 hover:bg-green-600"} text-white rounded-lg shadow-md flex items-center justify-center`}
+                className={`mt-6 px-6 py-3 w-full ${
+                  darkMode ? "bg-green-600 hover:bg-green-700" : "bg-green-500 hover:bg-green-600"
+                } text-white rounded-lg shadow-md flex items-center justify-center`}
               >
                 <Save size={18} className="mr-2" />
                 {editingId ? "Update Entry" : "Save Entry"}
               </button>
             </div>
           </div>
+        </div>
 
-          {/* 📜 Right Column: Previous Entries */}
-          <div className="space-y-6">
-            <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white"} shadow-md rounded-lg p-6 border`}>
-              <h3 className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"} mb-4`}>Journal Entries</h3>
+        {/* 📜 Right Column: Previous Entries */}
+        <div className="md:w-2/5 space-y-6">
+          <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white"} shadow-md rounded-xl overflow-hidden`}>
+            <div className={`h-3 ${darkMode ? "bg-purple-600" : "bg-purple-500"}`}></div>
+            <div className="p-6">
+              <h3 className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"} mb-4 flex items-center gap-2`}>
+                <Calendar className={`h-5 w-5 ${darkMode ? "text-purple-400" : "text-purple-500"}`} />
+                Journal Entries
+              </h3>
               
               {/* 🔍 Search and Filter */}
               <div className="space-y-3 mb-4">
-                <div className={`flex items-center border ${darkMode ? "border-gray-700 bg-gray-700" : "border-gray-300"} rounded-lg overflow-hidden`}>
+                <div className={`flex items-center border ${
+                  darkMode ? "border-gray-700 bg-gray-700" : "border-gray-300"
+                } rounded-lg overflow-hidden`}>
                   <div className={`p-2 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                     <Search size={18} />
                   </div>
@@ -394,7 +460,9 @@ export default function Journal() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search entries or tags..."
-                    className={`flex-grow p-2 ${darkMode ? "bg-gray-700 text-white placeholder-gray-400" : "bg-white"} focus:outline-none`}
+                    className={`flex-grow p-2 ${
+                      darkMode ? "bg-gray-700 text-white placeholder-gray-400" : "bg-white"
+                    } focus:outline-none`}
                   />
                 </div>
                 
@@ -403,7 +471,13 @@ export default function Journal() {
                   <select
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
-                    className={`py-1 px-2 ${darkMode ? "bg-gray-700 text-white border-gray-600" : "bg-white text-gray-700 border-gray-300"} border rounded-md focus:outline-none focus:ring-1 ${darkMode ? "focus:ring-blue-500" : "focus:ring-blue-400"}`}
+                    className={`py-1 px-2 ${
+                      darkMode 
+                        ? "bg-gray-700 text-white border-gray-600" 
+                        : "bg-white text-gray-700 border-gray-300"
+                    } border rounded-md focus:outline-none focus:ring-1 ${
+                      darkMode ? "focus:ring-blue-500" : "focus:ring-blue-400"
+                    }`}
                   >
                     <option value="all">All entries</option>
                     <option value="today">Today only</option>
@@ -425,7 +499,11 @@ export default function Journal() {
                       {entriesForDate.map((item: any) => (
                         <div 
                           key={item.id} 
-                          className={`${darkMode ? "bg-gray-700 hover:bg-gray-650" : "bg-gray-50 hover:bg-gray-100"} p-4 rounded-lg transition-colors`}
+                          className={`${
+                            darkMode ? "bg-gray-700 hover:bg-gray-650" : "bg-gray-50 hover:bg-gray-100"
+                          } p-4 rounded-lg transition-colors border ${
+                            darkMode ? "border-gray-600" : "border-gray-200"
+                          }`}
                         >
                           <div className="flex justify-between items-start mb-2">
                             {item.mood && (
@@ -437,14 +515,27 @@ export default function Journal() {
                             )}
                             <div className="flex space-x-2">
                               <button
+                                onClick={() => copyToClipboard(item.entry)}
+                                className={`p-1 ${
+                                  darkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-500 hover:text-blue-600"
+                                }`}
+                                title="Copy to clipboard"
+                              >
+                                <Copy size={16} />
+                              </button>
+                              <button
                                 onClick={() => editEntry(item.id)}
-                                className={`text-sm ${darkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-500 hover:text-blue-600"}`}
+                                className={`p-1 ${
+                                  darkMode ? "text-yellow-400 hover:text-yellow-300" : "text-yellow-500 hover:text-yellow-600"
+                                }`}
+                                title="Edit entry"
                               >
                                 <Edit size={16} />
                               </button>
                               <button
                                 onClick={() => deleteEntry(item.id)}
-                                className="text-sm text-red-500 hover:text-red-600"
+                                className="p-1 text-red-500 hover:text-red-600"
+                                title="Delete entry"
                               >
                                 <Trash size={16} />
                               </button>
@@ -493,7 +584,9 @@ export default function Journal() {
       </main>
 
       {/* 🌟 Footer */}
-      <footer className={`${darkMode ? "bg-gray-800 text-gray-300" : "bg-gray-200 text-gray-600"} text-center py-4 mt-auto`}>
+      <footer className={`${
+        darkMode ? "bg-gray-800 text-gray-300 border-gray-700" : "bg-gray-100 text-gray-600 border-gray-200"
+      } text-center py-4 mt-auto border-t`}>
         <p>© 2025 Inspirational Coach. All rights reserved.</p>
       </footer>
     </div>
