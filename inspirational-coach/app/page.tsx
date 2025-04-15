@@ -17,7 +17,7 @@ export default function Home() {
             <BookOpen className="h-4 w-4" />
             <span>Journal</span>
           </Link>
-          <Link href="/api/affirmations" className="text-gray-600 hover:text-green-500 transition flex items-center gap-1">
+          <Link href="/affirmations" className="text-gray-600 hover:text-green-500 transition flex items-center gap-1">
             <Star className="h-4 w-4" />
             <span>Daily Affirmations</span>
           </Link>

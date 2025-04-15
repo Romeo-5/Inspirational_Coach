@@ -13,8 +13,8 @@ class RequestModel(BaseModel):
 
 # Load the LLaMA 3.2 1B model
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token=" ")
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.float16, device_map="auto", use_auth_token=" ")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token="")
+model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.float16, device_map="auto", use_auth_token="")
 
 # Initialize FastAPI
 app = FastAPI()
