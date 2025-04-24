@@ -32,7 +32,7 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 
 # Load Dataset
-dataset = load_dataset("csv", data_files="cleaned_dataset.csv")
+dataset = load_dataset("csv", data_files="cultural_dataset.csv")
 
 # Tokenize data with max_length optimization
 def tokenize_function(examples):
@@ -107,6 +107,6 @@ print("Starting training...")
 trainer.train()
 
 # Save the model after training
-model.save_pretrained("./llama-finetuned-final")
-tokenizer.save_pretrained("./llama-finetuned-final")
+model.save_pretrained("./llama-finetuned")
+tokenizer.save_pretrained("./llama-finetuned")
 print("Training complete and model saved!")
