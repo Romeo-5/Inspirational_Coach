@@ -2,14 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import { db } from "../firebase";
-import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where } from "firebase/firestore";
 import Link from "next/link";
+import { useUser } from "../context/UserContext";
 import { 
   Calendar, Moon, Sun, Sparkles, Save, Trash, Edit, X, RefreshCw, 
   Search, Filter, ChevronDown, BookOpen, Star, Target, MessageCircle, Copy
 } from "lucide-react";
 
 export default function Journal() {
+  const { user, loading: userLoading } = useUser();
   const [entry, setEntry] = useState("");
   const [entries, setEntries] = useState<{ id: string; entry: string; timestamp: any; mood?: string; tags?: string[] }[]>([]);
   const [prompt, setPrompt] = useState("");
@@ -21,6 +23,7 @@ export default function Journal() {
   const [filter, setFilter] = useState("all");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const entryRef = useRef<HTMLTextAreaElement>(null);
 
   // 🔹 List of guided prompts for journaling
@@ -62,18 +65,37 @@ export default function Journal() {
   // 🔹 Fetch saved journal entries
   useEffect(() => {
     const fetchEntries = async () => {
-      const q = query(collection(db, "journal-entries"), orderBy("timestamp", "desc"));
-      const querySnapshot = await getDocs(q);
-      setEntries(querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        entry: doc.data().entry,
-        timestamp: doc.data().timestamp,
-        mood: doc.data().mood || "",
-        tags: doc.data().tags || [],
-      })));
+      if (!user) {
+        setEntries([]);
+        return;
+      }
+      
+      setIsLoading(true);
+      try {
+        // Add where clause to filter by user ID
+        const q = query(
+          collection(db, "journal-entries"), 
+          where("userId", "==", user.uid),
+          orderBy("timestamp", "desc")
+        );
+        
+        const querySnapshot = await getDocs(q);
+        setEntries(querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          entry: doc.data().entry,
+          timestamp: doc.data().timestamp,
+          mood: doc.data().mood || "",
+          tags: doc.data().tags || [],
+        })));
+      } catch (error) {
+        console.error("Error fetching entries:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
+    
     fetchEntries();
-  }, []);
+  }, [user]);
 
   // 🔹 Add a tag
   const addTag = () => {
@@ -90,43 +112,57 @@ export default function Journal() {
 
   // 🔹 Save a new journal entry
   const saveEntry = async () => {
-    if (entry.trim() === "") return;
+    if (entry.trim() === "" || !user) return;
     
-    if (editingId) {
-      // Update existing entry
-      await updateDoc(doc(db, "journal-entries", editingId), {
-        entry,
-        mood,
-        tags,
-        lastEdited: new Date(),
-      });
-      setEditingId(null);
-    } else {
-      // Add new entry
-      await addDoc(collection(db, "journal-entries"), {
-        entry,
-        timestamp: new Date(),
-        mood,
-        tags,
-      });
+    setIsLoading(true);
+    try {
+      if (editingId) {
+        // Update existing entry
+        await updateDoc(doc(db, "journal-entries", editingId), {
+          entry,
+          mood,
+          tags,
+          lastEdited: new Date(),
+          // userId already exists on the document
+        });
+        setEditingId(null);
+      } else {
+        // Add new entry with userId
+        await addDoc(collection(db, "journal-entries"), {
+          entry,
+          timestamp: new Date(),
+          mood,
+          tags,
+          userId: user.uid,  // Include the user ID
+        });
+      }
+      
+      // Refresh entries
+      const q = query(
+        collection(db, "journal-entries"), 
+        where("userId", "==", user.uid),
+        orderBy("timestamp", "desc")
+      );
+      
+      const querySnapshot = await getDocs(q);
+      setEntries(querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        entry: doc.data().entry,
+        timestamp: doc.data().timestamp,
+        mood: doc.data().mood || "",
+        tags: doc.data().tags || [],
+      })));
+      
+      // Reset form
+      setEntry("");
+      setMood("");
+      setTags([]);
+      setActivePrompt(false);
+    } catch (error) {
+      console.error("Error saving entry:", error);
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Refresh entries
-    const q = query(collection(db, "journal-entries"), orderBy("timestamp", "desc"));
-    const querySnapshot = await getDocs(q);
-    setEntries(querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      entry: doc.data().entry,
-      timestamp: doc.data().timestamp,
-      mood: doc.data().mood || "",
-      tags: doc.data().tags || [],
-    })));
-    
-    // Reset form
-    setEntry("");
-    setMood("");
-    setTags([]);
-    setActivePrompt(false);
   };
 
   // 🔹 Delete an entry
@@ -209,6 +245,35 @@ export default function Journal() {
     alert("Copied to clipboard!");
   };
 
+  // Add a login prompt for unauthenticated users
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <span className="ml-2 text-gray-700">Loading...</span>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
+          <Sparkles className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Sign In Required</h1>
+          <p className="text-gray-600 mb-6">
+            Please sign in to access your personal journal and start recording your thoughts.
+          </p>
+          <Link href="/">
+            <button className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition w-full">
+              Go to Home Page
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen flex flex-col ${darkMode ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"}`}>
       {/* 🌟 Navigation Bar */}
@@ -223,7 +288,7 @@ export default function Journal() {
             <BookOpen className="h-4 w-4" />
             <span>Journal</span>
           </Link>
-          <Link href="/api/affirmations" className={`${darkMode ? "text-gray-300 hover:text-green-400" : "text-gray-600 hover:text-green-500"} transition flex items-center gap-1`}>
+          <Link href="/affirmations" className={`${darkMode ? "text-gray-300 hover:text-green-400" : "text-gray-600 hover:text-green-500"} transition flex items-center gap-1`}>
             <Star className="h-4 w-4" />
             <span>Daily Affirmations</span>
           </Link>

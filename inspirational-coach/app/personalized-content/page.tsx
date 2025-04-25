@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { db } from "../firebase";
-import { collection, addDoc, getDocs, query, orderBy, limit, deleteDoc, doc } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, orderBy, limit, deleteDoc, doc, where } from "firebase/firestore";
+import { useUser } from "../context/UserContext";
 import axios from "axios";
 import Link from "next/link";
 import { ArrowRight, Star, Target, BookOpen, Sparkles, MessageCircle, Copy, Save, Edit2, Trash2, RefreshCw, Share2 } from "lucide-react";
 
 export default function PersonalizedContent() {
+  const { user, loading: userLoading } = useUser();
   // User Preferences
   const [culture, setCulture] = useState("");
   const [showCultureDropdown, setShowCultureDropdown] = useState(false);
@@ -104,8 +106,19 @@ export default function PersonalizedContent() {
   // Fetch saved inspirations
   useEffect(() => {
     const fetchSavedInspirations = async () => {
+      if (!user) {
+        setSavedInspirations([]);
+        return;
+      }
+      
       try {
-        const q = query(collection(db, "saved-inspirations"), orderBy("timestamp", "desc"), limit(5));
+        const q = query(
+          collection(db, "saved-inspirations"), 
+          where("userId", "==", user.uid),
+          orderBy("timestamp", "desc"), 
+          limit(5)
+        );
+        
         const querySnapshot = await getDocs(q);
         setSavedInspirations(
           querySnapshot.docs.map((doc) => ({
@@ -119,7 +132,7 @@ export default function PersonalizedContent() {
     };
 
     fetchSavedInspirations();
-  }, []);
+  }, [user]);
 
   // Handle Theme Selection
   const toggleTheme = (theme: string) => {
@@ -176,9 +189,9 @@ export default function PersonalizedContent() {
     }
   };
 
-  // Save Generated Content
+  // Save Generated Content (updated)
   const saveContent = async () => {
-    if (!generatedContent) return;
+    if (!generatedContent || !user) return;
     
     // Use edited content if in edit mode
     const contentToSave = isEditing ? editedContent : generatedContent;
@@ -191,6 +204,7 @@ export default function PersonalizedContent() {
         themes,
         timestamp: new Date(),
         background: backgroundPreview,
+        userId: user.uid,  // Include user ID
       });
       
       // Add the new inspiration to the list
@@ -201,6 +215,7 @@ export default function PersonalizedContent() {
           culture,
           themes,
           timestamp: new Date(),
+          userId: user.uid,
         },
         ...savedInspirations.slice(0, 4), // Keep only the 5 most recent
       ]);
@@ -215,6 +230,18 @@ export default function PersonalizedContent() {
       console.error("Error saving content:", error);
     } finally {
       setSavingContent(false);
+    }
+  };
+
+  // Delete saved inspiration (updated)
+  const deleteInspiration = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this inspiration?") || !user) return;
+    
+    try {
+      await deleteDoc(doc(db, "saved-inspirations", id));
+      setSavedInspirations(prev => prev.filter(insp => insp.id !== id));
+    } catch (error) {
+      console.error("Error deleting inspiration:", error);
     }
   };
 
@@ -236,18 +263,6 @@ export default function PersonalizedContent() {
   const applyEdits = () => {
     setGeneratedContent(editedContent);
     setIsEditing(false);
-  };
-
-  // Delete saved inspiration
-  const deleteInspiration = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this inspiration?")) return;
-    
-    try {
-      await deleteDoc(doc(db, "saved-inspirations", id));
-      setSavedInspirations(prev => prev.filter(insp => insp.id !== id));
-    } catch (error) {
-      console.error("Error deleting inspiration:", error);
-    }
   };
 
   // Copy to clipboard
@@ -298,6 +313,35 @@ export default function PersonalizedContent() {
     setShowCultureDropdown(false);
   };
 
+  // Add a login prompt for unauthenticated users
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <span className="ml-2 text-gray-700">Loading...</span>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
+          <Sparkles className="h-12 w-12 text-purple-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Sign In Required</h1>
+          <p className="text-gray-600 mb-6">
+            Please sign in to access your personalized inspiration content and save your favorites.
+          </p>
+          <Link href="/">
+            <button className="px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition w-full">
+              Go to Home Page
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Navigation Bar */}
@@ -312,7 +356,7 @@ export default function PersonalizedContent() {
             <BookOpen className="h-4 w-4" />
             <span>Journal</span>
           </Link>
-          <Link href="/api/affirmations" className="text-gray-600 hover:text-green-500 transition flex items-center gap-1">
+          <Link href="/affirmations" className="text-gray-600 hover:text-green-500 transition flex items-center gap-1">
             <Star className="h-4 w-4" />
             <span>Daily Affirmations</span>
           </Link>

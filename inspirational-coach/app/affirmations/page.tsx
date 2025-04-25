@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useUser } from "../context/UserContext";
+import { db } from "../firebase";
+import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { ArrowLeft, RefreshCw, Heart, Bookmark, Share2, Sparkles, BookOpen, Star, Target, MessageCircle } from "lucide-react";
 
 // Sample affirmation categories
@@ -53,45 +56,149 @@ const AFFIRMATIONS = {
 };
 
 export default function Affirmations() {
+  const { user, loading: userLoading } = useUser();
   type AffirmationCategory = keyof typeof AFFIRMATIONS;
   const [selectedCategory, setSelectedCategory] = useState<AffirmationCategory>("confidence");
   const [currentAffirmation, setCurrentAffirmation] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [savedAffirmations, setSavedAffirmations] = useState<{ text: string; category: AffirmationCategory; date: string }[]>([]);
+  const [savedAffirmations, setSavedAffirmations] = useState<{ id: string; text: string; category: AffirmationCategory; date: string }[]>([]);
+
+  // Fetch saved affirmations
+  useEffect(() => {
+    const fetchSavedAffirmations = async () => {
+      if (!user) {
+        setSavedAffirmations([]);
+        return;
+      }
+      
+      try {
+        const q = query(
+          collection(db, "saved-affirmations"), 
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc")
+        );
+        
+        const querySnapshot = await getDocs(q);
+        
+        setSavedAffirmations(querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          text: doc.data().text,
+          category: doc.data().category,
+          date: new Date(doc.data().createdAt.toDate()).toLocaleDateString()
+        })));
+      } catch (error) {
+        console.error("Error fetching saved affirmations:", error);
+      }
+    };
+    
+    fetchSavedAffirmations();
+  }, [user]);
 
   // Generate a random affirmation from the selected category
   const generateAffirmation = () => {
     setIsLoading(true);
     
+    // Check if the current affirmation is saved
+    const currentIsFavorite = savedAffirmations.some(item => item.text === currentAffirmation);
+    
     // Simulate API call delay
     setTimeout(() => {
       const categoryAffirmations = AFFIRMATIONS[selectedCategory];
       const randomIndex = Math.floor(Math.random() * categoryAffirmations.length);
-      setCurrentAffirmation(categoryAffirmations[randomIndex]);
-      setIsFavorite(false);
+      const newAffirmation = categoryAffirmations[randomIndex];
+      
+      setCurrentAffirmation(newAffirmation);
+      setIsFavorite(savedAffirmations.some(item => item.text === newAffirmation));
       setIsLoading(false);
     }, 600);
   };
 
-  // Save current affirmation to favorites
-  const toggleFavorite = () => {
-    if (isFavorite) {
-      setSavedAffirmations(savedAffirmations.filter(item => item.text !== currentAffirmation));
-    } else {
-      setSavedAffirmations([...savedAffirmations, {
-        text: currentAffirmation,
-        category: selectedCategory,
-        date: new Date().toLocaleDateString()
-      }]);
+  // Check if current affirmation is favorite when affirmation or saved list changes
+  useEffect(() => {
+    if (currentAffirmation) {
+      setIsFavorite(savedAffirmations.some(item => item.text === currentAffirmation));
     }
-    setIsFavorite(!isFavorite);
+  }, [currentAffirmation, savedAffirmations]);
+
+  // Save current affirmation to favorites
+  const toggleFavorite = async () => {
+    if (!user) return;
+    
+    if (isFavorite) {
+      // Find the affirmation to delete
+      const affirmationToDelete = savedAffirmations.find(item => item.text === currentAffirmation);
+      if (affirmationToDelete) {
+        try {
+          await deleteDoc(doc(db, "saved-affirmations", affirmationToDelete.id));
+          setSavedAffirmations(savedAffirmations.filter(item => item.id !== affirmationToDelete.id));
+          setIsFavorite(false);
+        } catch (error) {
+          console.error("Error removing affirmation:", error);
+        }
+      }
+    } else {
+      // Add new favorite
+      try {
+        const newAffirmation = {
+          text: currentAffirmation,
+          category: selectedCategory,
+          userId: user.uid,
+          createdAt: new Date()
+        };
+        
+        const docRef = await addDoc(collection(db, "saved-affirmations"), newAffirmation);
+        
+        setSavedAffirmations([
+          {
+            id: docRef.id,
+            text: currentAffirmation,
+            category: selectedCategory,
+            date: new Date().toLocaleDateString()
+          },
+          ...savedAffirmations
+        ]);
+        
+        setIsFavorite(true);
+      } catch (error) {
+        console.error("Error saving affirmation:", error);
+      }
+    }
   };
 
   // Initial affirmation on page load or category change
   useEffect(() => {
     generateAffirmation();
   }, [selectedCategory]);
+
+  // Add a login prompt for unauthenticated users
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <span className="ml-2 text-gray-700">Loading...</span>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
+          <Star className="h-12 w-12 text-green-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Sign In Required</h1>
+          <p className="text-gray-600 mb-6">
+            Please sign in to access your personal affirmations and save your favorites.
+          </p>
+          <Link href="/">
+            <button className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition w-full">
+              Go to Home Page
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100">

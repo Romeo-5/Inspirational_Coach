@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { db } from "../firebase";
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, orderBy } from "firebase/firestore";
+import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, orderBy, where } from "firebase/firestore";
+import { useUser } from "../context/UserContext";
 import axios from "axios";
 import Link from "next/link";
 import Progress from "../components/ui/Progress";
@@ -20,10 +21,11 @@ interface Goal {
   progress: number;
   completed: boolean;
   createdAt: number;
+  userId: string;
 }
 
 export default function Goals() {
-  // State for goals
+  const { user, loading: userLoading } = useUser();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Health");
   const [deadline, setDeadline] = useState("");
@@ -56,48 +58,63 @@ export default function Goals() {
     localStorage.setItem("darkMode", String(darkMode));
   }, [darkMode]);
 
-  // Fetch goals from Firestore
-  useEffect(() => {
-    const fetchGoals = async () => {
-      setLoading(true);
-      try {
-        const goalsQuery = query(collection(db, "goals"), orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(goalsQuery);
-        setGoals(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Goal)));
-      } catch (error) {
-        console.error("Error fetching goals:", error);
-      }
-      setLoading(false);
-    };
-    fetchGoals();
-  }, []);
-
-  // Add a new goal
-  const addGoal = async () => {
-    if (!title || !deadline) {
-      alert("Please enter a goal title and deadline.");
+ // Fetch goals from Firestore (updated)
+ useEffect(() => {
+  const fetchGoals = async () => {
+    if (!user) {
+      setGoals([]);
       return;
     }
+    
     setLoading(true);
     try {
-      const newGoal = {
-        title,
-        category,
-        deadline,
-        progress: 0,
-        completed: false,
-        createdAt: Date.now(),
-      };
-      const docRef = await addDoc(collection(db, "goals"), newGoal);
-      setGoals([{ id: docRef.id, ...newGoal }, ...goals]);
-      setTitle("");
-      setDeadline("");
-      setIsFormVisible(false);
+      // Add where clause to filter by user ID
+      const goalsQuery = query(
+        collection(db, "goals"), 
+        where("userId", "==", user.uid),
+        orderBy("createdAt", "desc")
+      );
+      
+      const querySnapshot = await getDocs(goalsQuery);
+      setGoals(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Goal)));
     } catch (error) {
-      console.error("Error adding goal:", error);
+      console.error("Error fetching goals:", error);
     }
     setLoading(false);
   };
+  
+  fetchGoals();
+}, [user]);
+
+// Add a new goal (updated)
+const addGoal = async () => {
+  if (!title || !deadline || !user) {
+    alert("Please enter a goal title and deadline.");
+    return;
+  }
+  
+  setLoading(true);
+  try {
+    const newGoal = {
+      title,
+      category,
+      deadline,
+      progress: 0,
+      completed: false,
+      createdAt: Date.now(),
+      userId: user.uid,  // Include user ID
+    };
+    
+    const docRef = await addDoc(collection(db, "goals"), newGoal);
+    setGoals([{ id: docRef.id, ...newGoal }, ...goals]);
+    setTitle("");
+    setDeadline("");
+    setIsFormVisible(false);
+  } catch (error) {
+    console.error("Error adding goal:", error);
+  }
+  setLoading(false);
+};
 
   // Update goal progress
   const updateGoalProgress = async (goalId: string, newProgress: number) => {
@@ -218,6 +235,35 @@ export default function Goals() {
     return countB - countA;
   });
 
+  // Add a login prompt for unauthenticated users
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <span className="ml-2 text-gray-700">Loading...</span>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
+          <Target className="h-12 w-12 text-orange-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Sign In Required</h1>
+          <p className="text-gray-600 mb-6">
+            Please sign in to access your personal goals and start tracking your progress.
+          </p>
+          <Link href="/">
+            <button className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition w-full">
+              Go to Home Page
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen flex flex-col ${darkMode ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"}`}>
       {/* Navigation Bar */}
@@ -236,7 +282,7 @@ export default function Goals() {
             <Target className="h-4 w-4" />
             <span>Goal Tracking</span>
           </Link>
-          <Link href="/api/affirmations" className={`${darkMode ? "text-gray-300 hover:text-green-400" : "text-gray-600 hover:text-green-500"} transition flex items-center gap-1`}>
+          <Link href="/affirmations" className={`${darkMode ? "text-gray-300 hover:text-green-400" : "text-gray-600 hover:text-green-500"} transition flex items-center gap-1`}>
             <Star className="h-4 w-4" />
             <span>Daily Affirmations</span>
           </Link>
