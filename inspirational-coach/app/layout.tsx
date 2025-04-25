@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { UserProvider } from "./context/UserContext";
+import { DarkModeProvider } from "./context/DarkModeContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,7 +15,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={inter.className}>
         <UserProvider>
-          {children}
+          <DarkModeProvider>
+            {children}
+          </DarkModeProvider>
         </UserProvider>
       </body>
     </html>

@@ -4,13 +4,16 @@ import { useState, useEffect } from "react";
 import { db } from "../firebase";
 import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, orderBy, where } from "firebase/firestore";
 import { useUser } from "../context/UserContext";
+import { useDarkMode } from "../context/DarkModeContext";
 import axios from "axios";
 import Link from "next/link";
 import Progress from "../components/ui/Progress";
+import PageLayout from "../components/layout/PageLayout";
+import PageHeader from "../components/layout/PageHeader";
 import { 
-  Target, BookOpen, Star, MessageCircle, Sun, Moon, Sparkles, 
-  Save, Trash, Edit, RefreshCw, PlusCircle, Filter, ChevronDown, 
-  CheckCircle, Award, Calendar, TrendingUp, Clipboard, X, PieChart
+  Target, PlusCircle, RefreshCw, X, Filter, 
+  CheckCircle, Award, Calendar, TrendingUp, 
+  Clipboard, PieChart, BookOpen, Sparkles
 } from "lucide-react";
 
 interface Goal {
@@ -26,6 +29,7 @@ interface Goal {
 
 export default function Goals() {
   const { user, loading: userLoading } = useUser();
+  const { darkMode } = useDarkMode();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("Health");
   const [deadline, setDeadline] = useState("");
@@ -35,7 +39,6 @@ export default function Goals() {
   const [activeGoal, setActiveGoal] = useState<Goal | null>(null);
   const [filter, setFilter] = useState("all");
   const [isFormVisible, setIsFormVisible] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
 
   // Available goal categories with icons
   const categories = [
@@ -47,74 +50,62 @@ export default function Goals() {
     { name: "Personal Growth", icon: "🌱" }
   ];
 
-  // Dark mode toggle
+  // Fetch goals from Firestore
   useEffect(() => {
-    const savedMode = localStorage.getItem("darkMode") === "true";
-    setDarkMode(savedMode);
-  }, []);
+    const fetchGoals = async () => {
+      if (!user) {
+        setGoals([]);
+        return;
+      }
+      
+      setLoading(true);
+      try {
+        const goalsQuery = query(
+          collection(db, "goals"), 
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc")
+        );
+        
+        const querySnapshot = await getDocs(goalsQuery);
+        setGoals(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Goal)));
+      } catch (error) {
+        console.error("Error fetching goals:", error);
+      }
+      setLoading(false);
+    };
+    
+    fetchGoals();
+  }, [user]);
 
-  useEffect(() => {
-    document.body.className = darkMode ? "dark" : "";
-    localStorage.setItem("darkMode", String(darkMode));
-  }, [darkMode]);
-
- // Fetch goals from Firestore (updated)
- useEffect(() => {
-  const fetchGoals = async () => {
-    if (!user) {
-      setGoals([]);
+  // Add a new goal
+  const addGoal = async () => {
+    if (!title || !deadline || !user) {
+      alert("Please enter a goal title and deadline.");
       return;
     }
     
     setLoading(true);
     try {
-      // Add where clause to filter by user ID
-      const goalsQuery = query(
-        collection(db, "goals"), 
-        where("userId", "==", user.uid),
-        orderBy("createdAt", "desc")
-      );
+      const newGoal = {
+        title,
+        category,
+        deadline,
+        progress: 0,
+        completed: false,
+        createdAt: Date.now(),
+        userId: user.uid,
+      };
       
-      const querySnapshot = await getDocs(goalsQuery);
-      setGoals(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Goal)));
+      const docRef = await addDoc(collection(db, "goals"), newGoal);
+      setGoals([{ id: docRef.id, ...newGoal }, ...goals]);
+      setTitle("");
+      setDeadline("");
+      setIsFormVisible(false);
     } catch (error) {
-      console.error("Error fetching goals:", error);
+      console.error("Error adding goal:", error);
     }
     setLoading(false);
   };
-  
-  fetchGoals();
-}, [user]);
-
-// Add a new goal (updated)
-const addGoal = async () => {
-  if (!title || !deadline || !user) {
-    alert("Please enter a goal title and deadline.");
-    return;
-  }
-  
-  setLoading(true);
-  try {
-    const newGoal = {
-      title,
-      category,
-      deadline,
-      progress: 0,
-      completed: false,
-      createdAt: Date.now(),
-      userId: user.uid,  // Include user ID
-    };
-    
-    const docRef = await addDoc(collection(db, "goals"), newGoal);
-    setGoals([{ id: docRef.id, ...newGoal }, ...goals]);
-    setTitle("");
-    setDeadline("");
-    setIsFormVisible(false);
-  } catch (error) {
-    console.error("Error adding goal:", error);
-  }
-  setLoading(false);
-};
 
   // Update goal progress
   const updateGoalProgress = async (goalId: string, newProgress: number) => {
@@ -159,6 +150,7 @@ const addGoal = async () => {
     }
   };
 
+  // Generate motivation message for a goal
   const generateMotivation = async (goal: Goal) => {
     setLoading(true);
     setActiveGoal(goal);
@@ -180,10 +172,15 @@ const addGoal = async () => {
       });
   
       setMotivationalMessage(response.data.response);
-      console.log("Generated Content:", response.data.response);
     } catch (error) {
       console.error("Error generating motivation:", error);
-      setMotivationalMessage("Failed to generate motivation. Please try again later.");
+      // Use a fallback motivation message if API call fails
+      const fallbackMessages = [
+        `You're making great progress on your ${goal.category} goal "${goal.title}". Keep pushing forward!`,
+        `Every step toward your ${goal.category} goal matters. You've already achieved ${goal.progress}% - keep going!`,
+        `Your commitment to "${goal.title}" is inspiring. Stay focused on your deadline and you'll succeed.`
+      ];
+      setMotivationalMessage(fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)]);
     }
   
     setLoading(false);
@@ -235,97 +232,53 @@ const addGoal = async () => {
     return countB - countA;
   });
 
+  // Create the page header
+  const goalsHeader = (
+    <PageHeader
+      title="Transform Your Aspirations into Achievements"
+      description="Set meaningful goals, track your progress, and get personalized motivation to help you succeed."
+      gradientFrom="blue-500"
+      gradientTo="green-500"
+      icon={<Target size={24} />}
+    />
+  );
+
   // Add a login prompt for unauthenticated users
   if (userLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        <span className="ml-2 text-gray-700">Loading...</span>
-      </div>
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className={`animate-spin h-8 w-8 border-4 ${darkMode ? "border-blue-400 border-t-transparent" : "border-blue-500 border-t-transparent"} rounded-full`}></div>
+          <span className={`ml-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>Loading...</span>
+        </div>
+      </PageLayout>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
-          <Target className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Sign In Required</h1>
-          <p className="text-gray-600 mb-6">
-            Please sign in to access your personal goals and start tracking your progress.
-          </p>
-          <Link href="/">
-            <button className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition w-full">
-              Go to Home Page
-            </button>
-          </Link>
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className={`${darkMode ? "bg-gray-800" : "bg-white"} p-8 rounded-xl shadow-lg max-w-md w-full text-center`}>
+            <Target className={`h-12 w-12 ${darkMode ? "text-orange-400" : "text-orange-500"} mx-auto mb-4`} />
+            <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"} mb-2`}>Sign In Required</h1>
+            <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} mb-6`}>
+              Please sign in to access your personal goals and start tracking your progress.
+            </p>
+            <Link href="/">
+              <button className={`px-6 py-3 ${darkMode ? "bg-orange-600 hover:bg-orange-700" : "bg-orange-500 hover:bg-orange-600"} text-white rounded-lg transition w-full`}>
+                Go to Home Page
+              </button>
+            </Link>
+          </div>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${darkMode ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"}`}>
-      {/* Navigation Bar */}
-      <nav className={`${darkMode ? "bg-gray-800" : "bg-white"} shadow-md py-4 px-6 flex justify-between items-center sticky top-0 z-10`}>
-        <Link href="/" className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"} flex items-center gap-2`}>
-          <Sparkles className={`h-6 w-6 ${darkMode ? "text-blue-400" : "text-blue-500"}`} />
-          <span>Inspirational Coach</span>
-        </Link>
-        
-        <div className="hidden md:flex space-x-6">
-          <Link href="/journal" className={`${darkMode ? "text-gray-300 hover:text-blue-400" : "text-gray-600 hover:text-blue-500"} transition flex items-center gap-1`}>
-            <BookOpen className="h-4 w-4" />
-            <span>Journal</span>
-          </Link>
-          <Link href="/personalized-content" className={`${darkMode ? "text-gray-300 hover:text-purple-400" : "text-gray-600 hover:text-purple-500"} transition flex items-center gap-1`}>
-            <Sparkles className="h-4 w-4" />
-            <span>Personalized Inspiration</span>
-          </Link>
-          <Link href="/affirmations" className={`${darkMode ? "text-gray-300 hover:text-green-400" : "text-gray-600 hover:text-green-500"} transition flex items-center gap-1`}>
-            <Star className="h-4 w-4" />
-            <span>Daily Affirmations</span>
-          </Link>
-          <Link href="/goals" className={`${darkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"} transition flex items-center gap-1 font-medium`}>
-            <Target className="h-4 w-4" />
-            <span>Goal Tracking</span>
-          </Link>
-          <Link href="/feedback" className={`${darkMode ? "text-gray-300 hover:text-purple-400" : "text-gray-600 hover:text-purple-500"} transition flex items-center gap-1`}>
-            <MessageCircle className="h-4 w-4" />
-            <span>Feedback</span>
-          </Link>
-          
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className={`p-2 rounded-full ${darkMode ? "bg-gray-700 text-yellow-300" : "bg-gray-200 text-gray-700"}`}
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-        </div>
-        
-        {/* Mobile menu button (simplified) */}
-        <button className="md:hidden text-gray-600 focus:outline-none">
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </nav>
-
-      {/* Header Section */}
-      <section className={`py-10 px-6 ${darkMode ? "bg-gradient-to-r from-gray-800 to-gray-900" : "bg-gradient-to-r from-blue-50 to-purple-50"}`}>
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className={`text-3xl md:text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"} leading-tight`}>
-            Transform Your <span className={darkMode ? "text-blue-400" : "text-blue-600"}>Aspirations</span> into Achievements
-          </h1>
-          <p className={`${darkMode ? "text-gray-300" : "text-gray-700"} mt-4 text-lg max-w-3xl mx-auto`}>
-            Set meaningful goals, track your progress, and get personalized motivation to help you succeed.
-          </p>
-        </div>
-      </section>
-
-      {/* Main Content */}
-      <main className="flex flex-col md:flex-row gap-8 p-6 max-w-6xl mx-auto w-full">
+    <PageLayout pageHeader={goalsHeader}>
+      <div className="flex flex-col md:flex-row gap-8 p-6 max-w-6xl mx-auto w-full">
         {/* Left Column - Goals List */}
         <div className="md:w-3/5 space-y-6">
           {/* Header with Add Button */}
@@ -423,8 +376,17 @@ const addGoal = async () => {
                     (loading || !title || !deadline) ? "opacity-70 cursor-not-allowed" : ""
                   }`}
                 >
-                  <Save size={18} />
-                  {loading ? "Creating..." : "Create Goal"}
+                  {loading ? (
+                    <>
+                      <RefreshCw size={18} className="animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <PlusCircle size={18} />
+                      <span>Create Goal</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -556,7 +518,7 @@ const addGoal = async () => {
                             className={`${darkMode ? "text-gray-400 hover:text-red-400" : "text-gray-400 hover:text-red-500"} transition`}
                             title="Delete goal"
                           >
-                            <Trash size={18} />
+                            <X size={18} />
                           </button>
                         </div>
                       </div>
@@ -711,7 +673,7 @@ const addGoal = async () => {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Award size={32} className={darkMode ? "text-gray-600" : "text-gray-400"} />
+                  <Award size={32} className={darkMode ? "text-gray-600 mx-auto" : "text-gray-400 mx-auto"} />
                   <p className={`${darkMode ? "text-gray-400" : "text-gray-500"} mt-4`}>
                     Select a goal and click "Get Motivated" to receive personalized encouragement.
                   </p>
@@ -850,25 +812,7 @@ const addGoal = async () => {
             </div>
           </div>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className={`mt-auto py-6 ${darkMode ? "bg-gray-900 text-gray-400" : "bg-gray-100 text-gray-600"}`}>
-        <div className="max-w-6xl mx-auto px-6 text-center text-sm">
-          <p>© 2025 Inspirational Coach. Your personal companion for growth and achievement.</p>
-          <div className="mt-2 flex justify-center space-x-4">
-            <Link href="/privacy" className={darkMode ? "hover:text-gray-300" : "hover:text-gray-800"}>
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className={darkMode ? "hover:text-gray-300" : "hover:text-gray-800"}>
-              Terms of Service
-            </Link>
-            <Link href="/contact" className={darkMode ? "hover:text-gray-300" : "hover:text-gray-800"}>
-              Contact Us
-            </Link>
-          </div>
-        </div>
-      </footer>
-    </div>
+      </div>
+    </PageLayout>
   );
 }

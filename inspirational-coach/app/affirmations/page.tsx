@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useUser } from "../context/UserContext";
+import { useDarkMode } from "../context/DarkModeContext";
 import { db } from "../firebase";
 import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from "firebase/firestore";
-import { ArrowLeft, RefreshCw, Heart, Bookmark, Share2, Sparkles, BookOpen, Star, Target, MessageCircle } from "lucide-react";
+import { RefreshCw, Heart, Share2, Star } from "lucide-react";
+import Link from "next/link";
+import PageLayout from "../components/layout/PageLayout";
+import PageHeader from "../components/layout/PageHeader";
 
 // Sample affirmation categories
 const AFFIRMATION_CATEGORIES = [
@@ -57,6 +60,7 @@ const AFFIRMATIONS = {
 
 export default function Affirmations() {
   const { user, loading: userLoading } = useUser();
+  const { darkMode } = useDarkMode();
   type AffirmationCategory = keyof typeof AFFIRMATIONS;
   const [selectedCategory, setSelectedCategory] = useState<AffirmationCategory>("confidence");
   const [currentAffirmation, setCurrentAffirmation] = useState("");
@@ -174,93 +178,53 @@ export default function Affirmations() {
   // Add a login prompt for unauthenticated users
   if (userLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        <span className="ml-2 text-gray-700">Loading...</span>
-      </div>
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className={`animate-spin h-8 w-8 border-4 ${darkMode ? "border-blue-400 border-t-transparent" : "border-blue-500 border-t-transparent"} rounded-full`}></div>
+          <span className={`ml-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>Loading...</span>
+        </div>
+      </PageLayout>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
-          <Star className="h-12 w-12 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Sign In Required</h1>
-          <p className="text-gray-600 mb-6">
-            Please sign in to access your personal affirmations and save your favorites.
-          </p>
-          <Link href="/">
-            <button className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition w-full">
-              Go to Home Page
-            </button>
-          </Link>
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className={`${darkMode ? "bg-gray-800" : "bg-white"} p-8 rounded-xl shadow-lg max-w-md w-full text-center`}>
+            <Star className={`h-12 w-12 ${darkMode ? "text-green-400" : "text-green-500"} mx-auto mb-4`} />
+            <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"} mb-2`}>Sign In Required</h1>
+            <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} mb-6`}>
+              Please sign in to access your personal affirmations and save your favorites.
+            </p>
+            <Link href="/">
+              <button className={`px-6 py-3 ${darkMode ? "bg-green-600 hover:bg-green-700" : "bg-green-500 hover:bg-green-600"} text-white rounded-lg transition w-full`}>
+                Go to Home Page
+              </button>
+            </Link>
+          </div>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
+  const affirmationsHeader = (
+    <PageHeader
+      title="Your Daily Affirmations"
+      description="Positive affirmations can transform your mindset and empower your day. Select a category that resonates with you and embrace these powerful statements."
+      gradientFrom="blue-500"
+      gradientTo="purple-600"
+      icon={<Star size={24} />}
+    />
+  );
+
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100">
-      {/* Navigation Bar */}
-      <nav className="bg-white shadow-sm py-4 px-6 flex justify-between items-center sticky top-0 z-10">
-        <Link href="/" className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-blue-500" />
-          <span>Inspirational Coach</span>
-        </Link>
-        
-        <div className="hidden md:flex space-x-6">
-          <Link href="/journal" className="text-gray-600 hover:text-blue-500 transition flex items-center gap-1">
-            <BookOpen className="h-4 w-4" />
-            <span>Journal</span>
-          </Link>
-          <Link href="/personalized-content" className="text-gray-600 hover:text-purple-500 transition flex items-center gap-1">
-            <Sparkles className="h-4 w-4" />
-            <span>Personalized Inspiration</span>
-          </Link>
-          <Link href="/affirmations" className="text-blue-600 border-b-2 border-blue-500 pb-1 transition flex items-center gap-1">
-            <Star className="h-4 w-4" />
-            <span>Daily Affirmations</span>
-          </Link>
-          <Link href="/goals" className="text-gray-600 hover:text-orange-500 transition flex items-center gap-1">
-            <Target className="h-4 w-4" />
-            <span>Goal Tracking</span>
-          </Link>
-          <Link href="/feedback" className="text-gray-600 hover:text-purple-500 transition flex items-center gap-1">
-            <MessageCircle className="h-4 w-4" />
-            <span>Feedback</span>
-          </Link>
-        </div>
-        
-        {/* Mobile menu button (simplified) */}
-        <button className="md:hidden text-gray-600 focus:outline-none">
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </nav>
-
-      {/* Page Header */}
-      <header className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-12 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-2">
-            <Link href="/" className="text-white/90 hover:text-white flex items-center gap-1">
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Home</span>
-            </Link>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold">Your Daily Affirmations</h1>
-          <p className="mt-4 text-blue-100 max-w-2xl">
-            Positive affirmations can transform your mindset and empower your day. Select a category that resonates with you and embrace these powerful statements.
-          </p>
-        </div>
-      </header>
-
-      <main className="flex-grow py-12 px-6">
+    <PageLayout pageHeader={affirmationsHeader}>
+      <div className="py-12 px-6">
         <div className="max-w-4xl mx-auto">
           {/* Category Selection */}
           <div className="mb-8">
-            <h2 className="text-lg font-medium text-gray-700 mb-4">Choose your focus for today:</h2>
+            <h2 className={`text-lg font-medium ${darkMode ? "text-gray-200" : "text-gray-700"} mb-4`}>Choose your focus for today:</h2>
             <div className="flex flex-wrap gap-3">
               {AFFIRMATION_CATEGORIES.map(category => (
                 <button 
@@ -269,7 +233,9 @@ export default function Affirmations() {
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                     selectedCategory === category.id 
                       ? `${category.color} text-white`
-                      : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                      : darkMode 
+                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600' 
+                        : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                   }`}
                 >
                   {category.name}
@@ -279,21 +245,21 @@ export default function Affirmations() {
           </div>
 
           {/* Current Affirmation Card */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-10">
+          <div className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-lg overflow-hidden mb-10`}>
             <div className={`h-2 ${AFFIRMATION_CATEGORIES.find(c => c.id === selectedCategory)?.color}`}></div>
             <div className="p-8">
-              <h3 className="text-sm uppercase tracking-wider text-gray-500 mb-6">
+              <h3 className={`text-sm uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"} mb-6`}>
                 {AFFIRMATION_CATEGORIES.find(c => c.id === selectedCategory)?.name} Affirmation
               </h3>
               
               <div className="min-h-40 flex items-center justify-center">
                 {isLoading ? (
                   <div className="flex flex-col items-center">
-                    <RefreshCw className="h-10 w-10 text-blue-500 animate-spin" />
-                    <p className="text-gray-500 mt-4">Preparing your affirmation...</p>
+                    <RefreshCw className={`h-10 w-10 ${darkMode ? "text-blue-400" : "text-blue-500"} animate-spin`} />
+                    <p className={`${darkMode ? "text-gray-400" : "text-gray-500"} mt-4`}>Preparing your affirmation...</p>
                   </div>
                 ) : (
-                  <p className="text-2xl text-center font-medium text-gray-800 leading-relaxed">
+                  <p className={`text-2xl text-center font-medium ${darkMode ? "text-white" : "text-gray-800"} leading-relaxed`}>
                     "{currentAffirmation}"
                   </p>
                 )}
@@ -302,7 +268,11 @@ export default function Affirmations() {
               <div className="mt-8 flex justify-between items-center">
                 <button 
                   onClick={generateAffirmation}
-                  className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition flex items-center gap-2"
+                  className={`px-4 py-2 ${
+                    darkMode 
+                      ? "bg-blue-900 text-blue-300 hover:bg-blue-800" 
+                      : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                  } rounded-lg transition flex items-center gap-2`}
                   disabled={isLoading}
                 >
                   <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -314,14 +284,22 @@ export default function Affirmations() {
                     onClick={toggleFavorite}
                     className={`p-2 rounded-full transition ${
                       isFavorite 
-                        ? 'bg-red-100 text-red-500' 
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        ? darkMode
+                          ? 'bg-red-900 text-red-400' 
+                          : 'bg-red-100 text-red-500' 
+                        : darkMode
+                          ? 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                     }`}
                   >
                     <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
                   </button>
                   
-                  <button className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition">
+                  <button className={`p-2 rounded-full ${
+                    darkMode
+                      ? 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  } transition`}>
                     <Share2 className="h-5 w-5" />
                   </button>
                 </div>
@@ -330,51 +308,51 @@ export default function Affirmations() {
           </div>
 
           {/* Practice Section */}
-          <div className="bg-blue-50 rounded-xl p-6 mb-10">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Practice Tips</h3>
-            <ul className="space-y-3 text-gray-700">
+          <div className={`${darkMode ? "bg-blue-900/30" : "bg-blue-50"} rounded-xl p-6 mb-10`}>
+            <h3 className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"} mb-4`}>Practice Tips</h3>
+            <ul className={`space-y-3 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
               <li className="flex gap-2">
-                <div className="mt-1 text-blue-500">•</div>
+                <div className={`mt-1 ${darkMode ? "text-blue-400" : "text-blue-500"}`}>•</div>
                 <p>Repeat your affirmation aloud 3 times each morning and evening</p>
               </li>
               <li className="flex gap-2">
-                <div className="mt-1 text-blue-500">•</div>
+                <div className={`mt-1 ${darkMode ? "text-blue-400" : "text-blue-500"}`}>•</div>
                 <p>Write your affirmation in a journal to reinforce its message</p>
               </li>
               <li className="flex gap-2">
-                <div className="mt-1 text-blue-500">•</div>
+                <div className={`mt-1 ${darkMode ? "text-blue-400" : "text-blue-500"}`}>•</div>
                 <p>Use your affirmation as a meditation focus for 5 minutes daily</p>
               </li>
               <li className="flex gap-2">
-                <div className="mt-1 text-blue-500">•</div>
+                <div className={`mt-1 ${darkMode ? "text-blue-400" : "text-blue-500"}`}>•</div>
                 <p>Say your affirmation with conviction while looking at yourself in the mirror</p>
               </li>
             </ul>
           </div>
 
           {/* Saved Affirmations */}
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-xl shadow-md p-6`}>
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-800">Your Saved Affirmations</h3>
-              <div className="text-sm text-gray-500">
+              <h3 className={`text-xl font-semibold ${darkMode ? "text-white" : "text-gray-800"}`}>Your Saved Affirmations</h3>
+              <div className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
                 {savedAffirmations.length} saved
               </div>
             </div>
 
             {savedAffirmations.length === 0 ? (
-              <div className="text-center py-10 text-gray-500">
-                <Bookmark className="h-10 w-10 mx-auto mb-4 opacity-50" />
+              <div className={`text-center py-10 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                <Heart className={`h-10 w-10 mx-auto mb-4 ${darkMode ? "opacity-30" : "opacity-50"}`} />
                 <p>You haven't saved any affirmations yet.</p>
                 <p className="text-sm mt-2">Like an affirmation to save it for future reference.</p>
               </div>
             ) : (
               <ul className="space-y-4">
                 {savedAffirmations.map((affirmation, index) => (
-                  <li key={index} className="border-b border-gray-100 pb-4 last:border-0">
-                    <p className="text-gray-800">"{affirmation.text}"</p>
+                  <li key={index} className={`border-b ${darkMode ? "border-gray-700" : "border-gray-100"} pb-4 last:border-0`}>
+                    <p className={darkMode ? "text-gray-200" : "text-gray-800"}>"{affirmation.text}"</p>
                     <div className="flex justify-between mt-2">
-                      <span className="text-sm text-gray-500">{affirmation.date}</span>
-                      <span className="text-sm font-medium text-blue-500">{
+                      <span className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>{affirmation.date}</span>
+                      <span className={`text-sm font-medium ${darkMode ? "text-blue-400" : "text-blue-500"}`}>{
                         AFFIRMATION_CATEGORIES.find(c => c.id === affirmation.category)?.name
                       }</span>
                     </div>
@@ -384,27 +362,7 @@ export default function Affirmations() {
             )}
           </div>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-gray-300 py-12 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div className="mb-8 md:mb-0">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-4">
-                <Sparkles className="h-5 w-5 text-blue-400" />
-                <span>Inspirational Coach</span>
-              </h3>
-              <p className="text-gray-400 max-w-md">
-                Empowering individuals to achieve personal growth through inspiration, goal setting, and daily practice.
-              </p>
-            </div>
-          </div>
-          <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
-            <p>© 2025 Inspirational Coach. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+      </div>
+    </PageLayout>
   );
 }

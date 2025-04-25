@@ -5,13 +5,17 @@ import { db } from "../firebase";
 import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where } from "firebase/firestore";
 import Link from "next/link";
 import { useUser } from "../context/UserContext";
+import { useDarkMode } from "../context/DarkModeContext";
+import PageLayout from "../components/layout/PageLayout";
+import PageHeader from "../components/layout/PageHeader";
 import { 
-  Calendar, Moon, Sun, Sparkles, Save, Trash, Edit, X, RefreshCw, 
-  Search, Filter, ChevronDown, BookOpen, Star, Target, MessageCircle, Copy
+  Calendar, Sparkles, Save, Trash, Edit, X, RefreshCw, 
+  Search, Filter, BookOpen, Copy
 } from "lucide-react";
 
 export default function Journal() {
   const { user, loading: userLoading } = useUser();
+  const { darkMode } = useDarkMode();
   const [entry, setEntry] = useState("");
   const [entries, setEntries] = useState<{ id: string; entry: string; timestamp: any; mood?: string; tags?: string[] }[]>([]);
   const [prompt, setPrompt] = useState("");
@@ -22,11 +26,10 @@ export default function Journal() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [darkMode, setDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const entryRef = useRef<HTMLTextAreaElement>(null);
 
-  // 🔹 List of guided prompts for journaling
+  // List of guided prompts for journaling
   const prompts = [
     "What made you smile today?",
     "What are you grateful for?",
@@ -40,7 +43,7 @@ export default function Journal() {
     "What self-care activities did you practice today?",
   ];
 
-  // 🔹 Mood options
+  // Mood options
   const moodOptions = [
     { value: "happy", label: "Happy 😊" },
     { value: "calm", label: "Calm 😌" },
@@ -51,18 +54,7 @@ export default function Journal() {
     { value: "grateful", label: "Grateful 🙏" },
   ];
 
-  // 🔹 Dark mode toggle
-  useEffect(() => {
-    const savedMode = localStorage.getItem("darkMode") === "true";
-    setDarkMode(savedMode);
-  }, []);
-
-  useEffect(() => {
-    document.body.className = darkMode ? "dark" : "";
-    localStorage.setItem("darkMode", String(darkMode));
-  }, [darkMode]);
-
-  // 🔹 Fetch saved journal entries
+  // Fetch saved journal entries
   useEffect(() => {
     const fetchEntries = async () => {
       if (!user) {
@@ -97,7 +89,7 @@ export default function Journal() {
     fetchEntries();
   }, [user]);
 
-  // 🔹 Add a tag
+  // Add a tag
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
@@ -105,12 +97,12 @@ export default function Journal() {
     }
   };
 
-  // 🔹 Remove a tag
+  // Remove a tag
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  // 🔹 Save a new journal entry
+  // Save a new journal entry
   const saveEntry = async () => {
     if (entry.trim() === "" || !user) return;
     
@@ -165,7 +157,7 @@ export default function Journal() {
     }
   };
 
-  // 🔹 Delete an entry
+  // Delete an entry
   const deleteEntry = async (id: string) => {
     if (confirm("Are you sure you want to delete this entry?")) {
       await deleteDoc(doc(db, "journal-entries", id));
@@ -173,7 +165,7 @@ export default function Journal() {
     }
   };
 
-  // 🔹 Edit an entry
+  // Edit an entry
   const editEntry = (id: string) => {
     const entryToEdit = entries.find(e => e.id === id);
     if (entryToEdit) {
@@ -190,14 +182,14 @@ export default function Journal() {
     }
   };
 
-  // 🔹 Generate a new guided prompt
+  // Generate a new guided prompt
   const generatePrompt = () => {
     const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
     setPrompt(randomPrompt);
     setActivePrompt(true);
   };
 
-  // 🔹 Apply prompt to entry
+  // Apply prompt to entry
   const applyPrompt = () => {
     setEntry(prompt + "\n\n");
     if (entryRef.current) {
@@ -205,7 +197,7 @@ export default function Journal() {
     }
   };
 
-  // 🔹 Filter entries by search and filter
+  // Filter entries by search and filter
   const filteredEntries = entries.filter(entry => {
     const matchesSearch = entry.entry.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (entry.tags && entry.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
@@ -223,13 +215,13 @@ export default function Journal() {
     return matchesSearch;
   });
 
-  // 🔹 Get date for grouping
+  // Get date for grouping
   const getEntryDate = (timestamp: any) => {
     const date = new Date(timestamp.seconds * 1000);
     return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   };
 
-  // 🔹 Group entries by date
+  // Group entries by date
   const groupedEntries = filteredEntries.reduce((groups: any, entry) => {
     const date = getEntryDate(entry.timestamp);
     if (!groups[date]) {
@@ -245,100 +237,56 @@ export default function Journal() {
     alert("Copied to clipboard!");
   };
 
+  // Create the page header
+  const journalHeader = (
+    <PageHeader
+      title="Guided Journaling Journey"
+      description="Reflect, express, and grow. Track your moods, tag your entries, and explore your journey over time."
+      gradientFrom="blue-500"
+      gradientTo="indigo-600"
+      icon={<BookOpen size={24} />}
+    />
+  );
+
   // Add a login prompt for unauthenticated users
   if (userLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        <span className="ml-2 text-gray-700">Loading...</span>
-      </div>
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className={`animate-spin h-8 w-8 border-4 ${darkMode ? "border-blue-400 border-t-transparent" : "border-blue-500 border-t-transparent"} rounded-full`}></div>
+          <span className={`ml-2 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>Loading...</span>
+        </div>
+      </PageLayout>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
-          <Sparkles className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Sign In Required</h1>
-          <p className="text-gray-600 mb-6">
-            Please sign in to access your personal journal and start recording your thoughts.
-          </p>
-          <Link href="/">
-            <button className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition w-full">
-              Go to Home Page
-            </button>
-          </Link>
+      <PageLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className={`${darkMode ? "bg-gray-800" : "bg-white"} p-8 rounded-xl shadow-lg max-w-md w-full text-center`}>
+            <BookOpen className={`h-12 w-12 ${darkMode ? "text-blue-400" : "text-blue-500"} mx-auto mb-4`} />
+            <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"} mb-2`}>Sign In Required</h1>
+            <p className={`${darkMode ? "text-gray-300" : "text-gray-600"} mb-6`}>
+              Please sign in to access your personal journal and start recording your thoughts.
+            </p>
+            <Link href="/">
+              <button className={`px-6 py-3 ${darkMode ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-500 hover:bg-blue-600"} text-white rounded-lg transition w-full`}>
+                Go to Home Page
+              </button>
+            </Link>
+          </div>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${darkMode ? "bg-gradient-to-b from-gray-900 to-gray-800" : "bg-gradient-to-b from-gray-50 to-gray-100"}`}>
-      {/* 🌟 Navigation Bar */}
-      <nav className={`${darkMode ? "bg-gray-800" : "bg-white"} shadow-md py-4 px-6 flex justify-between items-center sticky top-0 z-10`}>
-        <Link href="/" className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"} flex items-center gap-2`}>
-          <Sparkles className={`h-6 w-6 ${darkMode ? "text-blue-400" : "text-blue-500"}`} />
-          <span>Inspirational Coach</span>
-        </Link>
-        
-        <div className="hidden md:flex space-x-6">
-          <Link href="/journal" className={`${darkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"} transition flex items-center gap-1 font-medium`}>
-            <BookOpen className="h-4 w-4" />
-            <span>Journal</span>
-          </Link>
-          <Link href="/personalized-content" className={`${darkMode ? "text-gray-300 hover:text-blue-400" : "text-gray-600 hover:text-blue-500"} transition flex items-center gap-1`}>
-            <Sparkles className="h-4 w-4" />
-            <span>Personalized Inspiration</span>
-          </Link>
-          <Link href="/affirmations" className={`${darkMode ? "text-gray-300 hover:text-green-400" : "text-gray-600 hover:text-green-500"} transition flex items-center gap-1`}>
-            <Star className="h-4 w-4" />
-            <span>Daily Affirmations</span>
-          </Link>
-          <Link href="/goals" className={`${darkMode ? "text-gray-300 hover:text-orange-400" : "text-gray-600 hover:text-orange-500"} transition flex items-center gap-1`}>
-            <Target className="h-4 w-4" />
-            <span>Goal Tracking</span>
-          </Link>
-          <Link href="/feedback" className={`${darkMode ? "text-gray-300 hover:text-purple-400" : "text-gray-600 hover:text-purple-500"} transition flex items-center gap-1`}>
-            <MessageCircle className="h-4 w-4" />
-            <span>Feedback</span>
-          </Link>
-          
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className={`p-2 rounded-full ${darkMode ? "bg-gray-700 text-yellow-300" : "bg-gray-200 text-gray-700"}`}
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-        </div>
-        
-        {/* Mobile menu button (simplified) */}
-        <button className="md:hidden text-gray-600 focus:outline-none">
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </nav>
-
-      {/* 🌟 Header Section */}
-      <section className={`py-10 px-6 ${darkMode ? "bg-gradient-to-r from-gray-800 to-gray-900" : "bg-gradient-to-r from-blue-50 to-purple-50"}`}>
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className={`text-3xl md:text-4xl font-bold ${darkMode ? "text-white" : "text-gray-900"} leading-tight`}>
-            Guided <span className={darkMode ? "text-blue-400" : "text-blue-600"}>Journaling</span> Journey
-          </h1>
-          <p className={`${darkMode ? "text-gray-300" : "text-gray-700"} mt-4 text-lg max-w-3xl mx-auto`}>
-            Reflect, express, and grow. Track your moods, tag your entries, and explore your journey over time.
-          </p>
-        </div>
-      </section>
-
-      {/* 🌟 Main Content */}
-      <main className="flex flex-col md:flex-row gap-8 p-6 max-w-6xl mx-auto w-full">
-        {/* 📝 Left Column: Write & Edit */}
+    <PageLayout pageHeader={journalHeader}>
+      <div className="flex flex-col md:flex-row gap-8 p-6 max-w-6xl mx-auto w-full">
+        {/* Left Column: Write & Edit */}
         <div className="md:w-3/5 space-y-6">
-          {/* 📌 Guided Prompt Generator */}
+          {/* Guided Prompt Generator */}
           <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white"} shadow-md rounded-xl overflow-hidden`}>
             <div className={`h-3 ${darkMode ? "bg-indigo-600" : "bg-blue-500"}`}></div>
             <div className="p-6">
@@ -371,7 +319,7 @@ export default function Journal() {
             </div>
           </div>
 
-          {/* ✍️ Journal Input */}
+          {/* Journal Input */}
           <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white"} shadow-md rounded-xl overflow-hidden`}>
             <div className={`h-3 ${darkMode ? "bg-green-600" : "bg-green-500"}`}></div>
             <div className="p-6">
@@ -387,7 +335,7 @@ export default function Journal() {
                       setMood("");
                       setTags([]);
                     }}
-                    className="text-red-500 hover:text-red-600"
+                    className={`text-red-500 hover:text-red-600`}
                   >
                     <X size={20} />
                   </button>
@@ -408,7 +356,7 @@ export default function Journal() {
                 }`}
               />
               
-              {/* 🌈 Mood Selector */}
+              {/* Mood Selector */}
               <div className="mt-4">
                 <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
                   How are you feeling?
@@ -434,7 +382,7 @@ export default function Journal() {
                 </div>
               </div>
               
-              {/* 🏷️ Tags Input */}
+              {/* Tags Input */}
               <div className="mt-4">
                 <label className={`block text-sm font-medium ${darkMode ? "text-gray-300" : "text-gray-700"} mb-2`}>
                   Add tags
@@ -493,16 +441,28 @@ export default function Journal() {
                 onClick={saveEntry}
                 className={`mt-6 px-6 py-3 w-full ${
                   darkMode ? "bg-green-600 hover:bg-green-700" : "bg-green-500 hover:bg-green-600"
-                } text-white rounded-lg shadow-md flex items-center justify-center`}
+                } text-white rounded-lg shadow-md flex items-center justify-center ${
+                  !entry.trim() ? "opacity-70 cursor-not-allowed" : ""
+                }`}
+                disabled={!entry.trim()}
               >
-                <Save size={18} className="mr-2" />
-                {editingId ? "Update Entry" : "Save Entry"}
+                {isLoading ? (
+                  <>
+                    <RefreshCw size={18} className="mr-2 animate-spin" />
+                    <span>{editingId ? "Updating Entry..." : "Saving Entry..."}</span>
+                  </>
+                ) : (
+                  <>
+                    <Save size={18} className="mr-2" />
+                    <span>{editingId ? "Update Entry" : "Save Entry"}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
 
-        {/* 📜 Right Column: Previous Entries */}
+        {/* Right Column: Previous Entries */}
         <div className="md:w-2/5 space-y-6">
           <div className={`${darkMode ? "bg-gray-800 border-gray-700" : "bg-white"} shadow-md rounded-xl overflow-hidden`}>
             <div className={`h-3 ${darkMode ? "bg-purple-600" : "bg-purple-500"}`}></div>
@@ -512,7 +472,7 @@ export default function Journal() {
                 Journal Entries
               </h3>
               
-              {/* 🔍 Search and Filter */}
+              {/* Search and Filter */}
               <div className="space-y-3 mb-4">
                 <div className={`flex items-center border ${
                   darkMode ? "border-gray-700 bg-gray-700" : "border-gray-300"
@@ -551,9 +511,13 @@ export default function Journal() {
                 </div>
               </div>
               
-              {/* 📅 Entries by Date */}
+              {/* Entries by Date */}
               <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
-                {Object.keys(groupedEntries).length > 0 ? (
+                {isLoading && entries.length === 0 ? (
+                  <div className="flex justify-center py-10">
+                    <RefreshCw size={24} className={`${darkMode ? "text-blue-400" : "text-blue-500"} animate-spin`} />
+                  </div>
+                ) : Object.keys(groupedEntries).length > 0 ? (
                   Object.entries(groupedEntries).map(([date, entriesForDate]: [string, any]) => (
                     <div key={date} className="space-y-3">
                       <div className={`flex items-center ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
@@ -646,14 +610,7 @@ export default function Journal() {
             </div>
           </div>
         </div>
-      </main>
-
-      {/* 🌟 Footer */}
-      <footer className={`${
-        darkMode ? "bg-gray-800 text-gray-300 border-gray-700" : "bg-gray-100 text-gray-600 border-gray-200"
-      } text-center py-4 mt-auto border-t`}>
-        <p>© 2025 Inspirational Coach. All rights reserved.</p>
-      </footer>
-    </div>
+      </div>
+    </PageLayout>
   );
 }

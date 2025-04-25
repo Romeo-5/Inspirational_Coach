@@ -7,15 +7,73 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+}
+
+/* Dark mode transitions */
+body, nav, footer, button, a, div, h1, h2, h3, h4, h5, h6, p, span {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Custom utility classes */
+.card {
+  @apply rounded-xl shadow-md overflow-hidden;
+}
+
+.card.dark {
+  @apply bg-gray-800 text-white;
+}
+
+.card.light {
+  @apply bg-white text-gray-800;
+}
+
+.form-input {
+  @apply w-full p-3 rounded-md focus:outline-none focus:ring-2;
+}
+
+.form-input.dark {
+  @apply bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-500;
+}
+
+.form-input.light {
+  @apply bg-white border-gray-300 text-gray-700 focus:ring-blue-400;
+}
+
+.btn {
+  @apply px-4 py-2 rounded-lg font-medium transition flex items-center justify-center gap-2;
+}
+
+.btn-primary {
+  @apply bg-blue-500 text-white hover:bg-blue-600;
+}
+
+.btn-primary.dark {
+  @apply bg-blue-600 text-white hover:bg-blue-700;
+}
+
+/* Animation classes */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
