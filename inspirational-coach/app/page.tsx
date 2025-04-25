@@ -6,9 +6,11 @@ import { ArrowRight, Star, Target, BookOpen, Sparkles, MessageCircle } from "luc
 import AuthButtons from "./components/AuthButtons";
 import PageLayout from "./components/layout/PageLayout";
 import { useDarkMode } from "./context/DarkModeContext";
+import Navbar from "./components/layout/Navbar";
+import Footer from "./components/layout/Footer";
 
 export default function Home() {
-  const { darkMode } = useDarkMode();
+  const { darkMode, toggleDarkMode } = useDarkMode();
   const [inspiration, setInspiration] = useState(
     "The journey of a thousand miles begins with a single step. Today is your day to take that step with courage and conviction."
   );
@@ -29,8 +31,55 @@ export default function Home() {
     setInspiration(newInspiration);
   };
 
+  // Create custom Navbar with integrated auth buttons
+  const CustomNavbar = () => {
+    return (
+      <nav className={`${darkMode ? "bg-gray-800" : "bg-white"} shadow-sm py-4 px-6 flex justify-between items-center sticky top-0 z-10`}>
+        <Link href="/" className={`text-2xl font-bold ${darkMode ? "text-white" : "text-gray-800"} flex items-center gap-2`}>
+          <Sparkles className={`h-6 w-6 ${darkMode ? "text-blue-400" : "text-blue-500"}`} />
+          <span>Inspirational Coach</span>
+        </Link>
+        
+        <div className="flex items-center space-x-6">
+          <div className="hidden md:flex space-x-6">
+            <Link href="/journal" className={`transition flex items-center gap-1 ${darkMode ? "text-gray-300 hover:text-blue-400" : "text-gray-600 hover:text-blue-500"}`}>
+              <BookOpen className="h-4 w-4" />
+              <span>Journal</span>
+            </Link>
+            <Link href="/personalized-content" className={`transition flex items-center gap-1 ${darkMode ? "text-gray-300 hover:text-blue-400" : "text-gray-600 hover:text-blue-500"}`}>
+              <Sparkles className="h-4 w-4" />
+              <span>Personalized Inspiration</span>
+            </Link>
+            <Link href="/affirmations" className={`transition flex items-center gap-1 ${darkMode ? "text-gray-300 hover:text-blue-400" : "text-gray-600 hover:text-blue-500"}`}>
+              <Star className="h-4 w-4" />
+              <span>Daily Affirmations</span>
+            </Link>
+            <Link href="/goals" className={`transition flex items-center gap-1 ${darkMode ? "text-gray-300 hover:text-blue-400" : "text-gray-600 hover:text-blue-500"}`}>
+              <Target className="h-4 w-4" />
+              <span>Goal Tracking</span>
+            </Link>
+            <Link href="/feedback" className={`transition flex items-center gap-1 ${darkMode ? "text-gray-300 hover:text-blue-400" : "text-gray-600 hover:text-blue-500"}`}>
+              <MessageCircle className="h-4 w-4" />
+              <span>Feedback</span>
+            </Link>
+          </div>
+          
+          <div className="ml-6">
+            <AuthButtons />
+          </div>
+        </div>
+      </nav>
+    );
+  };
+
   return (
-    <PageLayout>
+    <div className={`min-h-screen flex flex-col ${
+      darkMode 
+        ? "bg-gradient-to-b from-gray-900 to-gray-800 text-white" 
+        : "bg-gradient-to-b from-gray-50 to-gray-100 text-gray-900"
+    }`}>
+      <CustomNavbar />
+      
       {/* Hero Section */}
       <section className={`py-16 px-6 ${darkMode ? "bg-gradient-to-r from-blue-900 to-purple-900" : "bg-gradient-to-r from-blue-50 to-purple-50"}`}>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center">
@@ -137,13 +186,8 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
-      {/* Additional Login Section (shown on mobile) */}
-      <div className="md:hidden py-8 px-6 bg-gray-100 dark:bg-gray-800">
-        <div className="max-w-md mx-auto flex justify-center">
-          <AuthButtons />
-        </div>
-      </div>
-    </PageLayout>
+
+      <Footer />
+    </div>
   );
 }

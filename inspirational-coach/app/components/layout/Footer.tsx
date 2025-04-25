@@ -47,18 +47,8 @@ export default function Footer() {
               <h4 className={`text-sm font-semibold ${darkMode ? "text-gray-200" : "text-gray-800"} uppercase tracking-wider mb-4`}>Resources</h4>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/privacy" className={`${darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"} transition`}>
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/terms" className={`${darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"} transition`}>
-                    Terms of Service
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className={`${darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"} transition`}>
-                    Contact Us
+                  <Link href="/personalized-content" className={`${darkMode ? "text-gray-400 hover:text-gray-200" : "text-gray-500 hover:text-gray-700"} transition`}>
+                    Personalized Inspiration
                   </Link>
                 </li>
               </ul>

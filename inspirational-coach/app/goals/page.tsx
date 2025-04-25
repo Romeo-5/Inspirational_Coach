@@ -150,41 +150,42 @@ export default function Goals() {
     }
   };
 
-  // Generate motivation message for a goal
-  const generateMotivation = async (goal: Goal) => {
-    setLoading(true);
-    setActiveGoal(goal);
-  
-    try {
-      const response = await axios.post("/goal", {
-        prompt: `You are a personal inspirational coach. Generate ONE single, cohesive inspirational message (2-3 sentences) that:
-  
-          1. Directly addresses the goal titled "${goal.title}".
-          2. Acknowledges the current progress of ${goal.progress}%.
-          3. Highlights the category of ${goal.category}.
-          4. Considers the deadline of ${goal.deadline}.
-          5. Uses an encouraging, supportive tone.
-          6. Speaks directly to the reader using "you".
-          7. Is complete and well-structured.
-  
-          Do not use bullet points or multiple options. Do not include phrases like "Here is an inspirational message." Do not label or explain the output. Simply provide the inspirational message itself, with a clear beginning and end.`,
-        max_tokens: 150,
-      });
-  
-      setMotivationalMessage(response.data.response);
-    } catch (error) {
-      console.error("Error generating motivation:", error);
-      // Use a fallback motivation message if API call fails
-      const fallbackMessages = [
-        `You're making great progress on your ${goal.category} goal "${goal.title}". Keep pushing forward!`,
-        `Every step toward your ${goal.category} goal matters. You've already achieved ${goal.progress}% - keep going!`,
-        `Your commitment to "${goal.title}" is inspiring. Stay focused on your deadline and you'll succeed.`
-      ];
-      setMotivationalMessage(fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)]);
-    }
-  
-    setLoading(false);
-  };
+  // Generate message
+const generateMotivation = async (goal: Goal) => {
+  setLoading(true);
+  setActiveGoal(goal);
+
+  try {
+    // API call
+    const response = await axios.post("http://localhost:8080/goal", {
+      prompt: `You are a personal inspirational coach. Generate ONE single, cohesive inspirational message (2-3 sentences) that:
+
+        1. Directly addresses the goal titled "${goal.title}".
+        2. Acknowledges the current progress of ${goal.progress}%.
+        3. Highlights the category of ${goal.category}.
+        4. Considers the deadline of ${goal.deadline}.
+        5. Uses an encouraging, supportive tone.
+        6. Speaks directly to the reader using "you".
+        7. Is complete and well-structured.
+
+        Do not use bullet points or multiple options. Do not include phrases like "Here is an inspirational message." Do not label or explain the output. Simply provide the inspirational message itself, with a clear beginning and end.`,
+      max_tokens: 150,
+    });
+
+    setMotivationalMessage(response.data.response);
+  } catch (error) {
+    console.error("Error generating motivation:", error);
+    // Use a fallback motivation message if API call fails
+    const fallbackMessages = [
+      `You're making great progress on your ${goal.category} goal "${goal.title}". Keep pushing forward!`,
+      `Every step toward your ${goal.category} goal matters. You've already achieved ${goal.progress}% - keep going!`,
+      `Your commitment to "${goal.title}" is inspiring. Stay focused on your deadline and you'll succeed.`
+    ];
+    setMotivationalMessage(fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)]);
+  }
+
+  setLoading(false);
+};
 
   // Get filtered goals
   const filteredGoals = goals.filter(goal => {
