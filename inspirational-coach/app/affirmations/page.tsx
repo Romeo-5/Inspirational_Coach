@@ -214,13 +214,13 @@ export default function Affirmations() {
             <BookOpen className="h-4 w-4" />
             <span>Journal</span>
           </Link>
-          <Link href="/affirmations" className="text-blue-600 border-b-2 border-blue-500 pb-1 transition flex items-center gap-1">
-            <Star className="h-4 w-4" />
-            <span>Daily Affirmations</span>
-          </Link>
           <Link href="/personalized-content" className="text-gray-600 hover:text-purple-500 transition flex items-center gap-1">
             <Sparkles className="h-4 w-4" />
             <span>Personalized Inspiration</span>
+          </Link>
+          <Link href="/affirmations" className="text-blue-600 border-b-2 border-blue-500 pb-1 transition flex items-center gap-1">
+            <Star className="h-4 w-4" />
+            <span>Daily Affirmations</span>
           </Link>
           <Link href="/goals" className="text-gray-600 hover:text-orange-500 transition flex items-center gap-1">
             <Target className="h-4 w-4" />

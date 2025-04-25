@@ -160,7 +160,7 @@ export default function PersonalizedContent() {
     setLoading(true);
 
     try {
-      const response = await axios.post("/generate", {
+      const response = await axios.post("http://localhost:8080/generate", {
         prompt: `You are a personal inspirational coach. Generate ONE single, cohesive inspirational message (3-4 sentences) that:
 
           1. Incorporates elements from ${culture} culture
@@ -356,13 +356,13 @@ export default function PersonalizedContent() {
             <BookOpen className="h-4 w-4" />
             <span>Journal</span>
           </Link>
-          <Link href="/affirmations" className="text-gray-600 hover:text-green-500 transition flex items-center gap-1">
-            <Star className="h-4 w-4" />
-            <span>Daily Affirmations</span>
-          </Link>
           <Link href="/personalized-content" className="text-blue-600 hover:text-blue-700 transition flex items-center gap-1 font-medium">
             <Sparkles className="h-4 w-4" />
             <span>Personalized Inspiration</span>
+          </Link>
+          <Link href="/affirmations" className="text-gray-600 hover:text-green-500 transition flex items-center gap-1">
+            <Star className="h-4 w-4" />
+            <span>Daily Affirmations</span>
           </Link>
           <Link href="/goals" className="text-gray-600 hover:text-orange-500 transition flex items-center gap-1">
             <Target className="h-4 w-4" />

@@ -288,13 +288,13 @@ export default function Journal() {
             <BookOpen className="h-4 w-4" />
             <span>Journal</span>
           </Link>
-          <Link href="/affirmations" className={`${darkMode ? "text-gray-300 hover:text-green-400" : "text-gray-600 hover:text-green-500"} transition flex items-center gap-1`}>
-            <Star className="h-4 w-4" />
-            <span>Daily Affirmations</span>
-          </Link>
           <Link href="/personalized-content" className={`${darkMode ? "text-gray-300 hover:text-blue-400" : "text-gray-600 hover:text-blue-500"} transition flex items-center gap-1`}>
             <Sparkles className="h-4 w-4" />
             <span>Personalized Inspiration</span>
+          </Link>
+          <Link href="/affirmations" className={`${darkMode ? "text-gray-300 hover:text-green-400" : "text-gray-600 hover:text-green-500"} transition flex items-center gap-1`}>
+            <Star className="h-4 w-4" />
+            <span>Daily Affirmations</span>
           </Link>
           <Link href="/goals" className={`${darkMode ? "text-gray-300 hover:text-orange-400" : "text-gray-600 hover:text-orange-500"} transition flex items-center gap-1`}>
             <Target className="h-4 w-4" />

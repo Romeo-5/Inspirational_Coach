@@ -278,17 +278,17 @@ const addGoal = async () => {
             <BookOpen className="h-4 w-4" />
             <span>Journal</span>
           </Link>
-          <Link href="/goals" className={`${darkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"} transition flex items-center gap-1 font-medium`}>
-            <Target className="h-4 w-4" />
-            <span>Goal Tracking</span>
+          <Link href="/personalized-content" className={`${darkMode ? "text-gray-300 hover:text-purple-400" : "text-gray-600 hover:text-purple-500"} transition flex items-center gap-1`}>
+            <Sparkles className="h-4 w-4" />
+            <span>Personalized Inspiration</span>
           </Link>
           <Link href="/affirmations" className={`${darkMode ? "text-gray-300 hover:text-green-400" : "text-gray-600 hover:text-green-500"} transition flex items-center gap-1`}>
             <Star className="h-4 w-4" />
             <span>Daily Affirmations</span>
           </Link>
-          <Link href="/personalized-content" className={`${darkMode ? "text-gray-300 hover:text-purple-400" : "text-gray-600 hover:text-purple-500"} transition flex items-center gap-1`}>
-            <Sparkles className="h-4 w-4" />
-            <span>Personalized Inspiration</span>
+          <Link href="/goals" className={`${darkMode ? "text-blue-400 hover:text-blue-300" : "text-blue-600 hover:text-blue-700"} transition flex items-center gap-1 font-medium`}>
+            <Target className="h-4 w-4" />
+            <span>Goal Tracking</span>
           </Link>
           <Link href="/feedback" className={`${darkMode ? "text-gray-300 hover:text-purple-400" : "text-gray-600 hover:text-purple-500"} transition flex items-center gap-1`}>
             <MessageCircle className="h-4 w-4" />
