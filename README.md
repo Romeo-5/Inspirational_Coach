@@ -2,7 +2,7 @@
 
 The **Inspirational Coach** is more than just an app—it's your **personal AI-driven mentor** for breaking through self-doubt, conquering procrastination, and unlocking your full potential. 🌟
 
-Designed to **empower, uplift, and inspire**, this platform combines **AI intelligence, goal tracking, and community engagement** to help you take action and build a more fulfilling life.
+Designed to **empower, uplift, and inspire**, this platform combines **personalized inspiration, goal tracking, journaling, and daily affirmationst** to help you take action and build a more fulfilling life.
 
 🔥 **Feeling stuck? Unmotivated? Lost in the social media noise?**  
 **Inspirational Coach** flips the script by replacing mindless scrolling with **personalized, purpose-driven content** that fuels your **growth and well-being**.
@@ -18,9 +18,6 @@ Designed to **empower, uplift, and inspire**, this platform combines **AI intell
 
 ✅ **📖 Guided Journaling & Reflection:**  
 → Engage in **thought-provoking journaling exercises** to boost self-awareness and mindfulness.
-
-✅ **🌍 Community-Driven Motivation:**  
-→ Share experiences, connect with like-minded individuals, and **get inspired by real success stories**.
 
 ✅ **🔁 Adaptive Feedback Loop:**  
 → The platform **learns from your engagement** to continuously refine and improve your experience.
