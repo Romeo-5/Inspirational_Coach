@@ -56,37 +56,37 @@ Despite inspiration’s impact on **well-being and achievement**, research on **
 🔹 **Key API Endpoints:**  
 🔑 `/api/auth` → Secure user authentication & session management  
 🎯 `/api/goals` → Goal-setting & progress tracking  
-🧠 `/api/analyze` → AI-powered inspiration detection  
-🌍 `/api/community` → Social feed for shared experiences  
+🧠 `/api/generate` → AI-powered inspiration generation  
+
 
 ---
 
-### **🧠 AI Model Integration (External Pipeline)**
+### **🧠 AI Model Integration**
 🤖 **LLM Integration:** Hugging Face for **cultural analysis & inspiration detection**  
-📡 **Data Sources:** Twitter, Reddit, YouTube, curated user-generated content  
+📡 **Data Sources:** Reddit, Twitter, Llama 3.1-8B 
 🛠️ **Training Pipeline:**  
-✅ **Text cleaning & language detection**  
-✅ **Fine-tuned models for diverse cultural perspectives**  
-✅ **Sentiment analysis & engagement-based ranking**  
+✅ **Cultural Inspiration Dataset consisting of 10,000+ examples of real and synthetic data**  
+✅ **Fine-tuned Llama 3.1-8B model using Low-Ranking Adaptation (LoRA) PEFT**  
+✅ **Hosted on server using CUDA for GPU optimization**  
 
 ---
 
 ### **📡 Data Collection & Model Training (External Process)**
 📊 **Sources:**  
-✅ Twitter, Reddit, YouTube → Real-world inspirational content  
-✅ User-generated posts → Community-driven motivation  
+✅ Twitter, Reddit → Real-world inspirational content  
+✅ Llama 3.1-8B → Generated inspirational content
 
-🔹 **Storage:**  s  
+🔹 **Storage:**  
 🛠️ **Firebase** → Storing user data  
 
 🔹 **Tools:**  
-🐍 **Python + Tweepy + PRAW** → Scraping & processing social media content  
+🐍 **Python, FastAPI, Transformers** → Server hosting and model deployment
 
 ---
 
 ## **💡 The Future: What’s Next?**
 🚀 **Next Steps:**  
-🔹 Expanding AI’s ability to **detect & rank truly inspiring content**  
+🔹 Expanding AI’s ability to **adapt to culturally diverse understanding**  
 🔹 **Gamification features** to boost engagement & goal-setting  
 🔹 AI-powered **personalized coaching**  
 
