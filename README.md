@@ -90,7 +90,7 @@ Despite inspiration's impact on **well-being and achievement**, research on **cr
 ### **🧠 AI Model Integration**
 
 #### **Model Architecture**
-🤖 **Base Model:** Meta Llama 3.2-1B-Instruct  
+🤖 **Base Model:** Meta Llama 3.2-8B-Instruct  
 🔧 **Fine-tuning Method:** LoRA (Low-Rank Adaptation) with PEFT  
 📊 **Training Framework:** Transformers + PEFT libraries  
 
