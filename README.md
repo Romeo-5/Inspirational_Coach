@@ -1,6 +1,6 @@
 # 🌟 Inspirational Coach – Your AI-Powered Guide to Personal Growth 🚀
 
-The **Inspirational Coach** is more than just an app—it's your **personal AI-driven mentor** for breaking through self-doubt, conquering procrastination, and unlocking your full potential. 🌟
+The **Inspirational Coach** is more than just an app, it's your **personal AI-driven mentor** for breaking through self-doubt, conquering procrastination, and unlocking your full potential. 🌟
 
 Designed to **empower, uplift, and inspire**, this platform combines **personalized inspiration, goal tracking, journaling, and daily affirmations** to help you take action and build a more fulfilling life.
 
