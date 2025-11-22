@@ -10,22 +10,21 @@ An AI-powered coaching application using fine-tuned Llama 3.2-1B with parameter-
 - Fine-tuned **Llama 3.2-1B** using QLoRA (parameter-efficient)
 - **95% cost reduction** vs. full fine-tuning
 - **Sub-200ms inference latency**
-- Deployed with FastAPI + Docker
+- Deployed with FastAPI 
 - Comprehensive evaluation pipeline
 
 ## 🛠️ Tech Stack
 - **Model:** Llama 3.2-1B (Meta)
 - **Fine-tuning:** QLoRA, Low-Rank Adaptation
 - **Framework:** PyTorch, Hugging Face Transformers
-- **Deployment:** FastAPI, Docker, REST API
+- **Deployment:** FastAPI, REST API
 - **Optimization:** Model quantization (FP32→INT8)
 
 ## 🔬 Technical Approach
 ### Fine-Tuning
 - **Method:** QLoRA (Quantized Low-Rank Adaptation)
-- **Training Data:** [Dataset size/source]
+- **Training Data:** Custom real + synthetic inspiralional data
 - **Training Time:** 6 GPU-hours (vs. 120 hours full fine-tuning)
-- **Performance:** 98% of full fine-tuning quality
 
 ### Optimization
 - Model quantization: FP32 → INT8
@@ -38,7 +37,6 @@ An AI-powered coaching application using fine-tuned Llama 3.2-1B with parameter-
 |--------|-------|
 | Inference Latency | <200ms |
 | Training Cost Reduction | 95% |
-| Quality vs. Full Fine-tuning | 98% |
 | Throughput Improvement | 4x |
 
 ## 🚀 Quick Start
@@ -61,5 +59,3 @@ python main.py
 - Prompt engineering critical for consistent outputs
 - Parameter-efficient methods democratize LLM customization
 
-## 📧 Contact
-Romeo Nickel - [LinkedIn](https://linkedin.com/in/romeo-nickel) - rjnickel@usc.edu
